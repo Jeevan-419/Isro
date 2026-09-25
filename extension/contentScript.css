@@ -1,0 +1,113 @@
+/**
+ * ============================================================================
+ * PRIVYVISION CONTENT SCRIPT STYLES
+ * High-contrast bounding boxes & corner badge
+ * ============================================================================
+ */
+
+#privyvision-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2147483640;
+}
+
+.pv-bbox {
+  position: absolute;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: all 0.15s ease-in-out;
+  box-sizing: border-box;
+}
+
+.pv-bbox-interactive {
+  border: 2px solid #06b6d4;
+  background-color: rgba(6, 182, 212, 0.08);
+}
+
+.pv-bbox-sensitive {
+  border: 2px solid #f43f5e;
+  background-color: rgba(244, 63, 94, 0.15);
+  backdrop-filter: blur(2px);
+}
+
+.pv-bbox-tag {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid #334155;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pv-bbox-sensitive .pv-bbox-tag {
+  background: #881337;
+  color: #ffe4e6;
+  border-color: #be123c;
+}
+
+/* Floating Corner Status Badge */
+#privyvision-floating-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 2147483645;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  pointer-events: auto;
+}
+
+.pv-badge-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pv-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pv-pulse 2s infinite;
+}
+
+@keyframes pv-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pv-title {
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.pv-stat {
+  background: #1e293b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.pv-pii {
+  color: #fb7185;
+  background: #4c0519;
+}

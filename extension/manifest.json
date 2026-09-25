@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "PrivyVision – On-Device Visual Perception Agent",
+  "version": "1.0.0",
+  "description": "On-device visual perception, local PII redaction, attention firewall, and local action guard for lightweight browser agents (SIH26171).",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PrivyVision Agent Control",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "css": ["contentScript.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "contentScript.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

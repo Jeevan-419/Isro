@@ -76,25 +76,28 @@ export const SystemScreen: React.FC<SystemScreenProps> = ({
               <div className="flex items-center space-x-2">
                 <Globe className="w-4 h-4 text-cyan-400" />
                 <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  Browser Extension Bridge
+                  Browser Extension (MV3)
                 </h3>
               </div>
               <span className="text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold">
-                ACTIVE
+                READY TO LOAD
               </span>
             </div>
             <p className="text-xs text-slate-400 mb-3">
-              PrivyVision Native Messaging host paired with Chrome MV3 Content Script.
+              Functional Chromium Manifest V3 extension ready for unpack-loading in Chrome, Edge, and Brave.
             </p>
-            <div className="space-y-1.5 text-[11px] font-mono text-slate-400 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <div>Protocol: Manifest V3 (Native Messaging)</div>
-              <div>DOM/Canvas Access: Unrestricted</div>
+            <div className="space-y-1.5 text-[11px] font-mono text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <div className="text-cyan-400 font-bold">Folder: ISRO/extension</div>
               <div>Permissions: activeTab, scripting, storage</div>
+              <div>Components: contentScript, background worker, popup</div>
             </div>
           </div>
-          <div className="mt-4 pt-2 border-t border-slate-800 text-[11px] text-emerald-400 flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Zero-copy canvas frame buffer ready</span>
+          <div className="mt-4 pt-2 border-t border-slate-800 text-[11px] text-emerald-400 flex items-center justify-between">
+            <span className="flex items-center space-x-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Manifest V3 Verified</span>
+            </span>
+            <span className="text-slate-400 font-mono text-[10px]">Min. Privileges</span>
           </div>
         </div>
 
