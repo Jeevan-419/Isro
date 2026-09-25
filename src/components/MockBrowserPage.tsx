@@ -112,6 +112,8 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
     const [ssn, setSsn] = useState('987-65-4321');
     const [phone, setPhone] = useState('+91 98450 12345');
     const [dob, setDob] = useState('1990-08-15');
+    const [address, setAddress] = useState('Sector 4, Space Research Complex, Sriharikota, AP - 524124');
+    const [apiKey, setApiKey] = useState('sk-live_948201948201958201');
     const [salary, setSalary] = useState('125000');
     const [secretQuestion, setSecretQuestion] = useState('Chandrayaan-3 Landing Site');
     const [role, setRole] = useState('payload-engineer');
@@ -541,15 +543,29 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
 
             {/* Main Content Area */}
             <div className="mock-form-card">
-              <div className="mock-form-header">
-                <div className="form-header-icon">
-                  <User size={22} />
+              <div className="mock-form-header flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="form-header-icon">
+                    <User size={22} />
+                  </div>
+                  <div>
+                    <h1 className="mock-page-title">Officer Clearance & Onboarding Form</h1>
+                    <p className="mock-page-desc">
+                      Please complete the form below to register your credentials. Fields with sensitive security markers are encrypted.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="mock-page-title">Officer Clearance & Onboarding Form</h1>
-                  <p className="mock-page-desc">
-                    Please complete the form below to register your credentials. Fields with sensitive security markers are encrypted.
-                  </p>
+                <div className="flex flex-col items-center">
+                  <img
+                    id="officer-face-avatar"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80"
+                    alt="Officer Identity Face Portrait"
+                    data-sensitive="true"
+                    data-sensitive-category="Face / Biometric"
+                    className="w-11 h-11 rounded-full border-2 border-indigo-400 object-cover shadow"
+                    onClick={() => onElementClick('officer-face-avatar', 'IMG')}
+                  />
+                  <span className="text-[9px] font-mono text-slate-400 mt-0.5">[Biometric Photo]</span>
                 </div>
               </div>
 
@@ -642,6 +658,27 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
                         onMouseEnter={() => onElementHover('input-dob')}
                         onMouseLeave={() => onElementHover(null)}
                         onClick={() => onElementClick('input-dob', 'INPUT')}
+                      />
+                    </div>
+
+                    {/* Address Field */}
+                    <div className="mock-form-group col-span-2">
+                      <label htmlFor="input-address" className="mock-label">
+                        Permanent Residential Address <span className="mock-badge-sensitive">Address</span>
+                      </label>
+                      <input
+                        id="input-address"
+                        name="address"
+                        type="text"
+                        data-sensitive="true"
+                        data-sensitive-category="Address"
+                        className={`mock-input ${getHighlightClass('input-address')}`}
+                        placeholder="Street, Research Complex, Pin: 524124"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        onMouseEnter={() => onElementHover('input-address')}
+                        onMouseLeave={() => onElementHover(null)}
+                        onClick={() => onElementClick('input-address', 'INPUT')}
                       />
                     </div>
                   </div>
@@ -754,6 +791,27 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
                         onMouseEnter={() => onElementHover('input-secret-question')}
                         onMouseLeave={() => onElementHover(null)}
                         onClick={() => onElementClick('input-secret-question', 'INPUT')}
+                      />
+                    </div>
+
+                    {/* API Key / Secret Token */}
+                    <div className="mock-form-group col-span-2">
+                      <label htmlFor="input-api-key" className="mock-label">
+                        Orbital API Access Token <span className="mock-badge-sensitive">API Key</span>
+                      </label>
+                      <input
+                        id="input-api-key"
+                        name="apiKey"
+                        type="password"
+                        data-sensitive="true"
+                        data-sensitive-category="API Key / Secret Token"
+                        className={`mock-input font-mono ${getHighlightClass('input-api-key')}`}
+                        placeholder="sk-****************"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        onMouseEnter={() => onElementHover('input-api-key')}
+                        onMouseLeave={() => onElementHover(null)}
+                        onClick={() => onElementClick('input-api-key', 'INPUT')}
                       />
                     </div>
                   </div>

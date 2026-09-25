@@ -72,22 +72,62 @@ export interface GroundedElement {
   xpath?: string;
   currentValue?: string;
   isSensitive: boolean;
-  sensitiveCategory?: string;
+  sensitiveCategory?: PiiCategory;
   redactedPlaceholder?: string;
   isInteractive: boolean;
   isVisible: boolean;
   ocrText?: string;
 }
 
+/**
+ * 9 Standardized PII / Sensitive Information Categories for SIH26171
+ */
+export type PiiCategory = 
+  | 'Email'
+  | 'Phone'
+  | 'Password'
+  | 'Government ID'
+  | 'Bank / Card Number'
+  | 'Date of Birth (DOB)'
+  | 'Address'
+  | 'API Key / Secret Token'
+  | 'Face / Biometric';
+
 export interface PiiEntity {
   id: string;
-  category: 'Password' | 'Government ID / SSN' | 'Personal Information' | 'Financial Data' | 'Contact Information';
+  category: PiiCategory;
   fieldName: string;
   rawSampleValue: string;
   maskedPlaceholder: string;
   boundingBox: BoundingBox;
   confidence: number;
+  detectionSignals: {
+    domAttribute: boolean;
+    ocrMatch: boolean;
+    regexMatch: boolean;
+    visualContext: boolean;
+  };
   redactionStatus: 'REDACTED' | 'EXEMPT';
+}
+
+export type PrivacyPipelineStep = 
+  | 'raw_screen'
+  | 'local_detection'
+  | 'redaction'
+  | 'sanitized_screen'
+  | 'privacy_gate'
+  | 'server';
+
+export interface LeakScanResult {
+  isClean: boolean;
+  scannedBytesCount: number;
+  rawEntitiesTested: number;
+  leakedEntitiesCount: number;
+  checkedCategories: PiiCategory[];
+  detectedLeaks: Array<{ category: PiiCategory; leakedSubstring: string }>;
+  zeroLeakCertificateId: string;
+  auditTimestamp: string;
+  verdict: 'TRANSMISSION_PERMITTED' | 'HARD_BLOCK_LEAK_PREVENTED';
 }
 
 export type ActionType = 'click' | 'fill' | 'select' | 'check' | 'scroll' | 'press_key';
