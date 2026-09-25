@@ -247,7 +247,7 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
     };
 
     return (
-      <div className="browser-window-container">
+      <div ref={ref} className="browser-window-container">
         {/* Browser Chrome: Top Bar & Address Bar */}
         <div className="browser-chrome-header">
           <div className="browser-window-buttons">
@@ -271,54 +271,54 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="flex items-center gap-1 bg-slate-200/80 p-0.5 rounded-md text-xs font-semibold">
+          <div className="flex items-center gap-1 bg-[#0b1020] p-0.5 rounded-lg border border-slate-800 text-xs font-semibold">
             <button
               type="button"
               className={`px-2 py-1 rounded transition-all flex items-center gap-1.5 ${
-                browserMode === 'portal' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                browserMode === 'portal' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-xs' : 'text-slate-400 hover:text-slate-200'
               }`}
               onClick={() => handleSwitchMode('portal')}
             >
-              <Shield size={12} />
+              <Shield size={12} className="text-cyan-400" />
               <span>Simulated Portal</span>
             </button>
             <button
               type="button"
               className={`px-2 py-1 rounded transition-all flex items-center gap-1.5 ${
-                browserMode === 'live' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                browserMode === 'live' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-xs' : 'text-slate-400 hover:text-slate-200'
               }`}
               onClick={() => handleSwitchMode('live')}
             >
-              <Globe size={12} />
+              <Globe size={12} className="text-cyan-400" />
               <span>Live Web (Any URL)</span>
             </button>
             <button
               type="button"
               className={`px-2 py-1 rounded transition-all flex items-center gap-1.5 ${
-                browserMode === 'custom_html' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                browserMode === 'custom_html' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-xs' : 'text-slate-400 hover:text-slate-200'
               }`}
               onClick={() => handleSwitchMode('custom_html')}
             >
-              <Code size={12} />
+              <Code size={12} className="text-cyan-400" />
               <span>HTML Sandbox</span>
             </button>
           </div>
 
           {/* Interactive Universal Address Bar */}
           <form onSubmit={handleUrlSubmit} className="flex-1 flex items-center relative">
-            <div className="browser-url-bar w-full flex items-center gap-1.5">
-              <Lock size={12} className="text-emerald-500 shrink-0" />
+            <div className="browser-url-bar w-full flex items-center gap-1.5 bg-[#050811] border border-slate-800 rounded-lg px-2.5 py-1">
+              <Lock size={12} className="text-emerald-400 shrink-0" />
               <input
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 placeholder="Enter any website URL (e.g., https://en.wikipedia.org, https://example.com)..."
-                className="bg-transparent border-none text-xs text-slate-800 font-medium focus:outline-none w-full"
+                className="bg-transparent border-none text-xs text-slate-200 font-mono focus:outline-none w-full placeholder:text-slate-600"
                 aria-label="Website address input"
               />
               <button
                 type="submit"
-                className="p-1 text-indigo-600 hover:bg-indigo-50 rounded shrink-0"
+                className="p-1 text-cyan-400 hover:bg-cyan-950/60 rounded shrink-0"
                 title="Navigate to URL"
               >
                 <ArrowRight size={13} />
@@ -330,16 +330,16 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              className="px-2 py-1 rounded bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-xs font-semibold flex items-center gap-1 border border-slate-200 transition-all shrink-0 cursor-pointer"
+              className="px-2 py-1 rounded bg-slate-900 border border-slate-700/80 hover:border-cyan-500/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold flex items-center gap-1 transition-all shrink-0 cursor-pointer"
               onClick={() => onOpenLiveMonitor?.(activeUrl)}
               title="Open this website in the Continuous Live Monitoring Console"
             >
-              <Activity size={12} className="text-emerald-500" />
+              <Activity size={12} className="text-emerald-400" />
               <span>Live Monitor</span>
             </button>
-            <div className="browser-status-chip shrink-0">
-              <span className="status-indicator-live" />
-              <span className="text-xs font-mono">
+            <div className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-400 font-semibold shrink-0">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
+              <span>
                 {browserMode === 'live' ? (isLoadingUrl ? 'LOADING' : 'LIVE PROXY') : browserMode === 'custom_html' ? 'SANDBOX' : 'PORTAL'}
               </span>
             </div>
@@ -347,32 +347,32 @@ export const MockBrowserPage = forwardRef<HTMLDivElement, MockBrowserPageProps>(
         </div>
 
         {/* Preset URL Navigation Bar for 1-Click Universal Browsing */}
-        <div className="bg-slate-100/90 border-b border-slate-200 px-3 py-1.5 flex items-center gap-2 overflow-x-auto text-xs shrink-0">
-          <span className="font-semibold text-slate-500 text-[11px] uppercase tracking-wide shrink-0">Quick Websites:</span>
+        <div className="browser-quick-bar bg-[#060913] border-b border-slate-800/80 px-3 py-1.5 flex items-center gap-2 overflow-x-auto text-xs shrink-0">
+          <span className="font-semibold text-slate-500 text-[10px] font-mono uppercase tracking-wider shrink-0">Quick Websites:</span>
           <button
             type="button"
-            className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 font-medium shrink-0 flex items-center gap-1"
+            className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 font-mono text-[11px] transition shrink-0 flex items-center gap-1"
             onClick={() => navigateToUrl(DEFAULT_PORTAL_URL)}
           >
             🛰️ SpaceOps Portal
           </button>
           <button
             type="button"
-            className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 font-medium shrink-0 flex items-center gap-1"
+            className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 font-mono text-[11px] transition shrink-0 flex items-center gap-1"
             onClick={() => navigateToUrl('https://example.com')}
           >
             🌐 Example Domain
           </button>
           <button
             type="button"
-            className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 font-medium shrink-0 flex items-center gap-1"
+            className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 font-mono text-[11px] transition shrink-0 flex items-center gap-1"
             onClick={() => navigateToUrl('https://en.wikipedia.org/wiki/Main_Page')}
           >
             📖 Wikipedia Main
           </button>
           <button
             type="button"
-            className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 font-medium shrink-0 flex items-center gap-1"
+            className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 font-mono text-[11px] transition shrink-0 flex items-center gap-1"
             onClick={() => navigateToUrl('https://news.ycombinator.com')}
           >
             📰 Hacker News

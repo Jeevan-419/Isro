@@ -239,12 +239,13 @@ export const AgentScreen: React.FC<AgentScreenProps> = ({
           </div>
 
           {/* Viewport Canvas with Bounding Boxes */}
-          <div className="relative flex-1 bg-slate-950 overflow-auto">
-            <div className="relative p-2">{children}</div>
+          <div className="relative flex-1 bg-slate-950 overflow-auto p-2.5">
+            <div className="relative">
+              {children}
 
-            {/* Precision Overlays */}
-            {activeOverlayFilter !== 'none' && (
-              <div className="absolute inset-0 pointer-events-none">
+              {/* Precision Overlays */}
+              {activeOverlayFilter !== 'none' && (
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {groundedElements
                   .filter((el) => {
                     if (activeOverlayFilter === 'interactive') return el.isInteractive;
@@ -299,6 +300,7 @@ export const AgentScreen: React.FC<AgentScreenProps> = ({
                   })}
               </div>
             )}
+            </div>
           </div>
         </div>
 

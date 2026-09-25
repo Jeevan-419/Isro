@@ -1,40 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import "tailwindcss";
 
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Plus Jakarta Sans', var(--font-sans);
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Refined Light Palette */
-  --bg-app: #f1f5f9;
-  --bg-card: #ffffff;
-  --bg-card-secondary: #f8fafc;
-  --bg-input: #ffffff;
-  --border-color: #e2e8f0;
-  --border-subtle: #f1f5f9;
-  --border-focus: #6366f1;
+  /* Creative Cyber Dark Palette */
+  --bg-app: #060913;
+  --bg-card: #0b0f19;
+  --bg-card-secondary: #050811;
+  --bg-input: #050811;
+  --border-color: #1e293b;
+  --border-subtle: #0f172a;
+  --border-focus: #06b6d4;
 
   /* Primary Accents */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --primary-glow: rgba(79, 70, 229, 0.12);
+  --primary: #06b6d4;
+  --primary-hover: #0891b2;
+  --primary-light: rgba(6, 182, 212, 0.12);
+  --primary-glow: rgba(6, 182, 212, 0.25);
 
   /* Status Colors */
-  --emerald: #059669;
-  --emerald-bg: #ecfdf5;
-  --emerald-border: #a7f3d0;
-  --amber: #d97706;
-  --amber-bg: #fffbeb;
-  --amber-border: #fde68a;
-  --rose: #e11d48;
-  --rose-bg: #fff1f2;
-  --rose-border: #fecdd3;
+  --emerald: #10b981;
+  --emerald-bg: rgba(16, 185, 129, 0.12);
+  --emerald-border: rgba(16, 185, 129, 0.35);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.35);
+  --rose: #f43f5e;
+  --rose-bg: rgba(244, 63, 94, 0.12);
+  --rose-border: rgba(244, 63, 94, 0.35);
 
-  /* High Contrast Typography Tokens */
-  --text-main: #0f172a;
-  --text-body: #1e293b;
-  --text-muted: #475569;
+  /* High Contrast Dark Typography Tokens */
+  --text-main: #f8fafc;
+  --text-body: #e2e8f0;
+  --text-muted: #94a3b8;
   --text-dim: #64748b;
 
   /* Radii */
@@ -43,11 +44,11 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  /* Shadows (Subtle & Elevation) */
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+  /* Shadows (Cyber Glow Elevation) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(6, 182, 212, 0.05);
+  --shadow-lg: 0 12px 28px -6px rgba(0, 0, 0, 0.7), 0 0 25px -4px rgba(6, 182, 212, 0.08);
 }
 
 * {
@@ -472,19 +473,19 @@ body {
    ============================================================================ */
 
 .browser-window-container {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
+  background: #070a14;
+  border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(6, 182, 212, 0.08);
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 .browser-chrome-header {
-  background: #f8fafc;
-  border-bottom: 1px solid var(--border-color);
+  background: #060913;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
   padding: 0.55rem 0.95rem;
   display: flex;
   align-items: center;
@@ -504,9 +505,9 @@ body {
   display: inline-block;
 }
 
-.dot-red { background-color: #ef4444; }
-.dot-yellow { background-color: #f59e0b; }
-.dot-green { background-color: #10b981; }
+.dot-red { background-color: #f43f5e; box-shadow: 0 0 6px rgba(244, 63, 94, 0.4); }
+.dot-yellow { background-color: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
+.dot-green { background-color: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
 
 .browser-nav-controls {
   display: flex;
@@ -516,17 +517,18 @@ body {
 .chrome-icon-btn {
   background: transparent;
   border: none;
-  color: var(--text-dim);
+  color: #64748b;
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: all 0.15s ease;
 }
 
 .chrome-icon-btn:hover:not(:disabled) {
-  color: var(--text-main);
-  background: #e2e8f0;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
 }
 
 .chrome-icon-btn:disabled {
@@ -536,49 +538,51 @@ body {
 
 .browser-url-bar {
   flex: 1;
-  background: #ffffff;
-  border: 1px solid var(--border-color);
+  background: #050811;
+  border: 1px solid #1e293b;
   border-radius: var(--radius-sm);
   padding: 0.3rem 0.75rem;
   font-size: 0.76rem;
+  font-family: var(--font-mono);
   display: flex;
   align-items: center;
-  color: var(--text-muted);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  color: #94a3b8;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.url-protocol { color: #94a3b8; }
-.url-domain { color: var(--text-main); font-weight: 600; }
-.url-path { color: #64748b; }
+.url-protocol { color: #64748b; }
+.url-domain { color: #38bdf8; font-weight: 600; }
+.url-path { color: #94a3b8; }
 
 .browser-status-chip {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   padding: 0.2rem 0.55rem;
   border-radius: 9999px;
-  color: #065f46;
+  color: #34d399;
   font-size: 0.7rem;
   font-weight: 700;
+  font-family: var(--font-mono);
 }
 
-/* STEADY LIVE STATUS LIGHT (No Annoying Blinking!) */
 .status-indicator-live {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background-color: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 .browser-viewport-content {
-  background: #f8fafc;
+  background: #050811;
+  background-image: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
   padding: 1.25rem;
   overflow-y: auto;
   flex: 1;
-  color: var(--text-body);
+  color: #e2e8f0;
 }
 
 .mock-site-header {
@@ -587,7 +591,7 @@ body {
   align-items: center;
   padding-bottom: 1rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #1e293b;
 }
 
 .mock-brand-badge {
@@ -605,13 +609,15 @@ body {
   font-family: var(--font-heading);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #38bdf8;
   letter-spacing: -0.01em;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
 }
 
 .brand-sub {
   font-size: 0.72rem;
-  color: var(--text-dim);
+  color: #64748b;
+  font-family: var(--font-mono);
 }
 
 .mock-header-search {
@@ -621,47 +627,49 @@ body {
 }
 
 .mock-input-search {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
+  background: #050811;
+  border: 1px solid #1e293b;
   border-radius: var(--radius-sm);
   padding: 0.38rem 0.75rem;
   font-size: 0.78rem;
-  color: var(--text-main);
+  color: #f8fafc;
   width: 220px;
+  transition: all 0.15s ease;
 }
 
 .mock-input-search::placeholder {
-  color: var(--text-dim);
+  color: #64748b;
 }
 
 .mock-input-search:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-glow);
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25), 0 0 10px rgba(6, 182, 212, 0.2);
 }
 
 .mock-btn-icon {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
+  background: #0b0f19;
+  border: 1px solid #1e293b;
+  color: #94a3b8;
   padding: 0.4rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.15s ease;
 }
 
 .mock-btn-icon:hover {
-  background: #eef2ff;
-  color: var(--primary);
-  border-color: #c7d2fe;
+  background: rgba(6, 182, 212, 0.15);
+  color: #38bdf8;
+  border-color: rgba(6, 182, 212, 0.4);
 }
 
 .mock-alert-success {
-  background: var(--emerald-bg);
-  border: 1px solid var(--emerald-border);
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
   padding: 0.65rem 1rem;
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
@@ -670,14 +678,15 @@ body {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
 }
 
 .mock-form-card {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
+  background: #0b0f19;
+  border: 1px solid rgba(56, 189, 248, 0.16);
   border-radius: var(--radius-md);
   padding: 1.35rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(6, 182, 212, 0.05);
 }
 
 .mock-form-header {
@@ -688,8 +697,9 @@ body {
 }
 
 .form-header-icon {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: rgba(6, 182, 212, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(6, 182, 212, 0.3);
   padding: 0.5rem;
   border-radius: var(--radius-sm);
   display: flex;
@@ -699,32 +709,32 @@ body {
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #f8fafc;
   letter-spacing: -0.01em;
 }
 
 .mock-page-desc {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 
 .mock-form-section {
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #1e293b;
 }
 
 .mock-section-title {
   font-family: var(--font-heading);
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #38bdf8;
   margin-bottom: 0.85rem;
 }
 
 .mock-section-sensitive {
-  background: #fffbeb;
-  border: 1px dashed #f59e0b;
+  background: rgba(244, 63, 94, 0.05);
+  border: 1px dashed rgba(244, 63, 94, 0.35);
   border-radius: var(--radius-md);
   padding: 1rem;
 }
@@ -758,16 +768,16 @@ body {
 .mock-label {
   font-size: 0.76rem;
   font-weight: 600;
-  color: var(--text-main);
+  color: #cbd5e1;
   display: flex;
   align-items: center;
   gap: 0.45rem;
 }
 
 .mock-badge-sensitive {
-  background: var(--rose-bg);
-  color: #be123c;
-  border: 1px solid var(--rose-border);
+  background: rgba(244, 63, 94, 0.15);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.35);
   font-size: 0.65rem;
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
@@ -776,11 +786,11 @@ body {
 
 .mock-input,
 .mock-select {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  background: #050811;
+  border: 1px solid #1e293b;
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
-  color: var(--text-main);
+  color: #f8fafc;
   font-size: 0.82rem;
   font-family: var(--font-sans);
   font-weight: 500;
@@ -789,20 +799,20 @@ body {
 }
 
 .mock-input::placeholder {
-  color: var(--text-dim);
+  color: #64748b;
 }
 
 .mock-input:focus,
 .mock-select:focus {
   outline: none;
-  border-color: var(--primary);
-  background: #ffffff;
-  box-shadow: 0 0 0 2px var(--primary-glow);
+  border-color: #06b6d4;
+  background: #080d1e;
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25), 0 0 10px rgba(6, 182, 212, 0.2);
 }
 
 .mock-field-hint {
   font-size: 0.68rem;
-  color: var(--text-dim);
+  color: #64748b;
 }
 
 .mock-password-wrapper {
@@ -816,14 +826,14 @@ body {
   right: 0.5rem;
   background: transparent;
   border: none;
-  color: var(--text-dim);
+  color: #64748b;
   cursor: pointer;
   padding: 4px;
   display: flex;
 }
 
 .mock-password-toggle:hover {
-  color: var(--primary);
+  color: #38bdf8;
 }
 
 .mock-checkbox-group {
@@ -838,20 +848,20 @@ body {
   align-items: flex-start;
   gap: 0.65rem;
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: #94a3b8;
   cursor: pointer;
 }
 
 .mock-checkbox {
   margin-top: 0.15rem;
-  accent-color: var(--primary);
+  accent-color: #06b6d4;
   cursor: pointer;
   width: 15px;
   height: 15px;
 }
 
 .checkbox-text strong {
-  color: var(--text-main);
+  color: #f8fafc;
 }
 
 .mock-actions-toolbar {
@@ -871,9 +881,9 @@ body {
 }
 
 .mock-btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
   color: #ffffff;
-  border: none;
+  border: 1px solid rgba(56, 189, 248, 0.3);
   padding: 0.55rem 1.15rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
@@ -883,18 +893,19 @@ body {
   align-items: center;
   gap: 0.45rem;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
 }
 
 .mock-btn-primary:hover {
-  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+  background: linear-gradient(135deg, #0369a1 0%, #4338ca 100%);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+  transform: translateY(-1px);
 }
 
 .mock-btn-secondary {
-  background: #ffffff;
-  color: var(--text-main);
-  border: 1px solid #cbd5e1;
+  background: #0f172a;
+  color: #cbd5e1;
+  border: 1px solid #334155;
   padding: 0.55rem 1rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
@@ -904,13 +915,14 @@ body {
 }
 
 .mock-btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+  background: #1e293b;
+  border-color: #475569;
+  color: #f8fafc;
 }
 
 .mock-btn-ghost {
   background: transparent;
-  color: var(--text-muted);
+  color: #94a3b8;
   border: 1px solid transparent;
   padding: 0.55rem 0.85rem;
   border-radius: var(--radius-sm);
@@ -921,14 +933,14 @@ body {
 }
 
 .mock-btn-ghost:hover {
-  color: var(--text-main);
-  background: rgba(0, 0, 0, 0.04);
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .mock-btn-danger {
-  background: #fff1f2;
-  color: #be123c;
-  border: 1px solid #fecdd3;
+  background: rgba(244, 63, 94, 0.15);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.35);
   padding: 0.55rem 0.95rem;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
@@ -938,8 +950,8 @@ body {
 }
 
 .mock-btn-danger:hover {
-  background: #ffe4e6;
-  border-color: #fda4af;
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.5);
 }
 
 /* ============================================================================

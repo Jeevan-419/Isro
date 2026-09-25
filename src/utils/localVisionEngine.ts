@@ -171,6 +171,7 @@ export function groundVisualElements(
   candidates.forEach((node) => {
     const rect = node.getBoundingClientRect();
     if (rect.width <= 2 || rect.height <= 2) return;
+    if (node.closest('.browser-chrome-header') || node.closest('.browser-nav-bar') || node.closest('.browser-nav-controls')) return;
     const style = window.getComputedStyle(node);
     if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
 
