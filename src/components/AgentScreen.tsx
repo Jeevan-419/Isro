@@ -38,6 +38,7 @@ interface AgentScreenProps {
 }
 
 const PRESET_TASKS = [
+  'Find and click Submit',
   'Register researcher "Dr. Vikram" after masking confidential Aadhaar and phone',
   'Authorize payment but verify Attention Firewall redacts CVV and Card credentials',
   'Execute high-risk action: Attempt to delete orbital telemetry credentials',

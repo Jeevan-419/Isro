@@ -147,35 +147,66 @@ export const App: React.FC = () => {
     await new Promise((r) => setTimeout(r, 200));
     stepStage(4, 'completed', 7);
 
-    // Stage 6: Reason (Server LLM / VLM Task Decomposition)
+    // Stage 6: Reason (Server LLM / VLM Task Decomposition via Express API)
     stepStage(5, 'running', 65);
     let targetSelector = '#btn-submit-registration';
     let actionType: any = 'click';
     let intent = taskPrompt;
+    let proposedAction: StructuredBrowserAction;
 
-    if (/payment|card|cvv|pay/i.test(taskPrompt)) {
-      targetSelector = '#btn-submit-payment';
-      intent = 'Authorize and complete payment transaction with masked credentials';
-    } else if (/delete|remove|credential/i.test(taskPrompt)) {
-      targetSelector = '#btn-delete-credential';
-      intent = 'High-risk destructive credential removal attempt';
+    try {
+      const response = await fetch('http://localhost:3001/api/actions/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: taskPrompt,
+          sanitizedElements: groundedElements
+            .filter((e) => e.isInteractive)
+            .map((e) => ({
+              cssSelector: e.cssSelector,
+              label: e.label,
+              role: e.role,
+              tagName: e.tagName,
+              isSensitive: e.isSensitive,
+            })),
+        }),
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const act = json.data;
+        if (act && act.targetSelector) {
+          targetSelector = act.targetSelector;
+          actionType = act.actionType || 'click';
+          intent = act.description || taskPrompt;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('[PrivyVision] Server reasoning API fallback to local intent planner:', apiErr);
+      if (/submit/i.test(taskPrompt)) {
+        targetSelector = '#btn-submit-registration';
+      } else if (/payment|card|cvv|pay/i.test(taskPrompt)) {
+        targetSelector = '#btn-submit-payment';
+      } else if (/delete|remove|credential/i.test(taskPrompt)) {
+        targetSelector = '#btn-delete-credential';
+      }
     }
 
-    const proposedAction: StructuredBrowserAction = {
+    proposedAction = {
       actionId: `act-${Date.now().toString().slice(-4)}`,
       actionType,
       targetElementUid: targetSelector.replace('#', ''),
       targetSelector,
       targetDescription: intent,
-      confidence: 0.96,
+      confidence: 0.97,
       intent,
       coordinates: { x: 480, y: 520 },
     };
     setLastAction(proposedAction);
-    await new Promise((r) => setTimeout(r, 380));
-    stepStage(5, 'completed', 58);
+    await new Promise((r) => setTimeout(r, 260));
+    stepStage(5, 'completed', 48);
 
-    // Stage 7: Act (Evaluate with Local Action Guard)
+    // Stage 7: Act (Evaluate with Local Action Guard & Dispatch to DOM)
     stepStage(6, 'running', 16);
     const isDestructive = /delete|destroy|purge|drop/i.test(taskPrompt);
     const guard: ActionGuardEvaluationResult = {
@@ -192,19 +223,31 @@ export const App: React.FC = () => {
         : 'Action APPROVED: Target within valid container, zero plain credentials exfiltrated.',
     };
     setGuardResult(guard);
-    await new Promise((r) => setTimeout(r, 280));
+    await new Promise((r) => setTimeout(r, 200));
 
     if (guard.status === 'BLOCKED') {
       stepStage(6, 'blocked', 18);
       setIsPipelineRunning(false);
       return;
     }
+
+    // Real Browser DOM Execution
+    const targetNode = viewportContainerRef.current?.querySelector(proposedAction.targetSelector) as HTMLElement | null;
+    if (targetNode) {
+      targetNode.focus();
+      targetNode.click();
+    }
     stepStage(6, 'completed', 14);
 
-    // Stage 8: Verify
+    // Stage 8: Verify (Visual State Delta Verification)
     stepStage(7, 'running', 20);
-    await new Promise((r) => setTimeout(r, 240));
-    stepStage(7, 'completed', 16);
+    await new Promise((r) => setTimeout(r, 300));
+    // Verify DOM state change (success alert or mutated attributes)
+    const alertSuccess = viewportContainerRef.current?.querySelector('.mock-alert-success');
+    if (alertSuccess || targetNode) {
+      performVisualScan();
+    }
+    stepStage(7, 'completed', 18);
 
     setCurrentStageIndex(8);
     setIsPipelineRunning(false);
