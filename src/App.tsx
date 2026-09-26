@@ -1,13 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Zap,
-  Eye,
-  ShieldCheck,
-  Terminal,
-  BarChart3,
-  Settings,
-  Shield,
-} from 'lucide-react';
 import type {
   NavigationSection,
   PipelineStageInfo,
@@ -37,14 +28,15 @@ const INITIAL_PIPELINE_STAGES: PipelineStageInfo[] = [
   { id: 'perceive', label: 'Visual perception', description: 'Visual & OCR Grounding', status: 'idle' },
   { id: 'detect_pii', label: 'PII detection', description: 'Sensitive Entity Scan', status: 'idle' },
   { id: 'redact', label: 'Local redaction', description: 'Canvas Blur & Tokenize', status: 'idle' },
-  { id: 'protect', label: 'Privacy check', description: 'Attention Firewall', status: 'idle' },
-  { id: 'reason', label: 'Reasoning', description: 'Server LLM / VLM', status: 'idle' },
+  { id: 'protect', label: 'Privacy verification', description: 'Attention Firewall', status: 'idle' },
+  { id: 'reason', label: 'Server reasoning', description: 'Server LLM / VLM', status: 'idle' },
   { id: 'act', label: 'Action', description: 'Local Action Guard', status: 'idle' },
   { id: 'verify', label: 'Verification', description: 'Visual State Check', status: 'idle' },
 ];
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavigationSection>('agent');
+  const [taskInput, setTaskInput] = useState<string>('Find the Submit button and click it');
   const viewportContainerRef = useRef<HTMLDivElement>(null);
   const [runtimeStatus, setRuntimeStatus] = useState<VisionRuntimeStatus>(createInitialRuntimeStatus());
 
@@ -79,7 +71,7 @@ export const App: React.FC = () => {
     initHardware();
   }, []);
 
-  // Perform visual scan once viewport is mounted
+  // Visual scan of browser viewport
   const performVisualScan = useCallback(() => {
     if (!viewportContainerRef.current) return;
     const { elements, piiEntities, scanDurationMs } = groundVisualElements(
@@ -100,8 +92,9 @@ export const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [performVisualScan]);
 
-  // Execute 8-stage pipeline
-  const handleRunPipeline = async (taskPrompt: string) => {
+  // Execute pipeline
+  const handleRunPipeline = async (promptToRun?: string) => {
+    const prompt = promptToRun || taskInput;
     setIsPipelineRunning(true);
     setCurrentStageIndex(0);
 
@@ -114,13 +107,13 @@ export const App: React.FC = () => {
 
     // 1. Capture
     stepStage(0, 'running', 14);
-    await new Promise((r) => setTimeout(r, 220));
+    await new Promise((r) => setTimeout(r, 200));
     stepStage(0, 'completed', 14);
 
     // 2. Visual perception
     stepStage(1, 'running', 28);
     performVisualScan();
-    await new Promise((r) => setTimeout(r, 280));
+    await new Promise((r) => setTimeout(r, 260));
     stepStage(1, 'completed', 28);
 
     // 3. PII detection
@@ -133,16 +126,16 @@ export const App: React.FC = () => {
     await new Promise((r) => setTimeout(r, 200));
     stepStage(3, 'completed', 22);
 
-    // 5. Privacy check
+    // 5. Privacy verification
     stepStage(4, 'running', 15);
     await new Promise((r) => setTimeout(r, 180));
     stepStage(4, 'completed', 15);
 
-    // 6. Reasoning
+    // 6. Server reasoning
     stepStage(5, 'running', 45);
     let targetSelector = '#submit-registration-btn';
     let actionType: StructuredBrowserAction['actionType'] = 'click';
-    let intent = 'Click "Submit"';
+    let intent = 'Find and click Submit';
 
     try {
       const sanitizedElements = groundedElements.slice(0, 10).map((e) => ({
@@ -157,7 +150,7 @@ export const App: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          taskPrompt,
+          taskPrompt: prompt,
           pageContext: {
             url: 'https://portal.space-ops.gov.in/onboarding',
             title: 'SpaceOps Clearance Portal',
@@ -169,15 +162,13 @@ export const App: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.action) {
-          const act = data.action;
-          targetSelector = act.targetSelector || targetSelector;
-          actionType = act.actionType || 'click';
-          intent = act.description || taskPrompt;
+          targetSelector = data.action.targetSelector || targetSelector;
+          actionType = data.action.actionType || 'click';
+          intent = data.action.description || prompt;
         }
       }
     } catch {
-      // Offline fallback
-      if (/submit/i.test(taskPrompt)) {
+      if (/submit/i.test(prompt)) {
         targetSelector = '#submit-registration-btn';
       }
     }
@@ -193,27 +184,25 @@ export const App: React.FC = () => {
       coordinates: { x: 480, y: 520 },
     };
     setLastAction(proposedAction);
-    await new Promise((r) => setTimeout(r, 240));
+    await new Promise((r) => setTimeout(r, 220));
     stepStage(5, 'completed', 45);
 
-    // 7. Action (Guard check & DOM dispatch)
+    // 7. Action Guard & DOM click
     stepStage(6, 'running', 16);
-    const isDestructive = /delete|destroy|purge/i.test(taskPrompt);
+    const isDestructive = /delete|destroy|purge/i.test(prompt);
     const guard: ActionGuardEvaluationResult = {
       isAllowed: !isDestructive,
       status: isDestructive ? 'BLOCKED' : 'APPROVED',
-      ruleViolations: isDestructive
-        ? ['Rule Violation: Destructive action prohibited.']
-        : [],
+      ruleViolations: isDestructive ? ['Destructive action prohibited'] : [],
       scopePassed: true,
       credentialLeakPrevented: true,
       destructiveRiskLevel: isDestructive ? 'HIGH' : 'LOW',
       explanation: isDestructive
         ? 'Action BLOCKED by Local Action Guard.'
-        : 'Action APPROVED: Target within valid container, zero plain credentials exfiltrated.',
+        : 'Action APPROVED: Target within valid container.',
     };
     setGuardResult(guard);
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 180));
 
     if (guard.status === 'BLOCKED') {
       stepStage(6, 'blocked', 18);
@@ -221,9 +210,8 @@ export const App: React.FC = () => {
       return;
     }
 
-    // Real Browser DOM Execution
     let targetNode = viewportContainerRef.current?.querySelector(proposedAction.targetSelector) as HTMLElement | null;
-    if (!targetNode && /submit/i.test(taskPrompt)) {
+    if (!targetNode && /submit/i.test(prompt)) {
       targetNode = viewportContainerRef.current?.querySelector('#submit-registration-btn, #btn-submit-registration, button[type="submit"]') as HTMLElement | null;
     }
     if (targetNode) {
@@ -234,7 +222,7 @@ export const App: React.FC = () => {
 
     // 8. Verification
     stepStage(7, 'running', 20);
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 280));
     performVisualScan();
     stepStage(7, 'completed', 20);
 
@@ -267,46 +255,47 @@ export const App: React.FC = () => {
   const piiCount = detectedPii.length > 0 ? detectedPii.length : 3;
 
   return (
-    <div className="flex h-screen bg-[#070b16] text-slate-100 font-sans selection:bg-blue-500/30 overflow-hidden">
+    <div className="h-screen w-screen flex flex-row overflow-hidden bg-[#070b16] text-slate-100 font-sans selection:bg-blue-600/30">
       {/* =========================================================================
-          LEFT SIDEBAR NAVIGATION
+          SIDEBAR: width = 220px, fixed, full height
          ========================================================================= */}
-      <aside className="w-56 bg-[#0b1020] border-r border-slate-800/80 flex flex-col justify-between shrink-0">
+      <aside className="w-[220px] h-full shrink-0 bg-[#0b1120] border-r border-slate-800 flex flex-col justify-between select-none">
         <div>
-          {/* Top Brand Header */}
-          <div className="px-5 py-5 border-b border-slate-800/60">
-            <h1 className="text-xs font-bold uppercase tracking-widest text-white font-mono">
-              PRIVYVISION
+          {/* Logo & Subtitle */}
+          <div className="px-5 py-5 border-b border-slate-800">
+            <h1 className="text-sm font-bold tracking-wider text-white font-mono flex items-center gap-2">
+              <span className="text-blue-500">◈</span> PRIVYVISION
             </h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="text-[11px] text-slate-400 font-medium">Agent Online</span>
-            </div>
+            <p className="text-[10px] tracking-widest text-slate-400 font-mono mt-1 uppercase">
+              LOCAL BROWSER AGENT
+            </p>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (● Agent, ○ Perception, etc.) */}
           <nav className="p-3 space-y-1">
             {[
-              { id: 'agent' as NavigationSection, label: 'Agent', icon: Zap },
-              { id: 'perception' as NavigationSection, label: 'Perception', icon: Eye },
-              { id: 'privacy' as NavigationSection, label: 'Privacy', icon: ShieldCheck },
-              { id: 'actions' as NavigationSection, label: 'Actions', icon: Terminal },
-              { id: 'evaluation' as NavigationSection, label: 'Evaluation', icon: BarChart3 },
-              { id: 'system' as NavigationSection, label: 'System', icon: Settings },
-            ].map(({ id, label, icon: Icon }) => {
+              { id: 'agent' as NavigationSection, label: 'Agent' },
+              { id: 'perception' as NavigationSection, label: 'Perception' },
+              { id: 'privacy' as NavigationSection, label: 'Privacy' },
+              { id: 'actions' as NavigationSection, label: 'Actions' },
+              { id: 'evaluation' as NavigationSection, label: 'Evaluation' },
+              { id: 'system' as NavigationSection, label: 'System' },
+            ].map(({ id, label }) => {
               const isActive = activeTab === id;
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setActiveTab(id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs transition cursor-pointer ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                   }`}
                 >
-                  <Icon size={15} />
+                  <span className={isActive ? 'text-white' : 'text-slate-600'}>
+                    {isActive ? '●' : '○'}
+                  </span>
                   <span>{label}</span>
                 </button>
               );
@@ -314,41 +303,40 @@ export const App: React.FC = () => {
           </nav>
         </div>
 
-        {/* Sidebar Bottom Badges */}
-        <div className="p-4 border-t border-slate-800/60 space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>RUNTIME</span>
-            <span className="text-blue-400 font-semibold">
-              {runtimeStatus.activeMode === 'webgpu' ? 'WebGPU' : runtimeStatus.activeMode.toUpperCase()}
-            </span>
+        {/* Bottom Badges */}
+        <div className="p-4 border-t border-slate-800 space-y-2">
+          <div className="flex items-center gap-2 text-xs text-slate-300">
+            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+            <span className="font-medium">WebGPU</span>
           </div>
-
-          <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-medium bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-1.5 rounded-md">
-            <Shield size={12} className="shrink-0" />
-            <span>Privacy Shield ON</span>
+          <div className="flex items-center gap-2 text-xs text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+            <span className="font-medium">Privacy Shield</span>
           </div>
         </div>
       </aside>
 
       {/* =========================================================================
-          MAIN APPLICATION AREA
+          RIGHT CONTENT COLUMN: HEADER + TASK BAR + MAIN WORKSPACE + STATUS BAR
          ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header Inside Main Content */}
-        <header className="border-b border-slate-800/80 bg-[#090d19]/90 px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 min-h-0 overflow-hidden">
+        {/* =========================================================================
+            HEADER: height = 64px
+           ========================================================================= */}
+        <header className="h-[64px] shrink-0 border-b border-slate-800 bg-[#0a0f1d] px-6 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-white tracking-tight">
               PrivyVision
             </h2>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs text-slate-400">
               On-device browser intelligence
             </p>
           </div>
 
           <div className="flex items-center gap-3 text-xs font-mono">
             <div className="flex items-center gap-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>LOCAL</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Local</span>
             </div>
             <span className="text-slate-700">|</span>
             <span className="text-blue-400 font-medium">WebGPU</span>
@@ -357,8 +345,46 @@ export const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Dynamic Screen Viewport Container */}
-        <main className="flex-1 p-5 overflow-y-auto min-h-0 bg-[#070b16]">
+        {/* =========================================================================
+            TASK BAR: height = 72px
+           ========================================================================= */}
+        <section className="h-[72px] shrink-0 border-b border-slate-800 bg-[#070b16] px-6 flex items-center gap-4">
+          <span className="text-xs font-bold font-mono uppercase tracking-wider text-slate-400 shrink-0">
+            AGENT TASK
+          </span>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (taskInput.trim() && !isPipelineRunning) {
+                handleRunPipeline(taskInput);
+              }
+            }}
+            className="flex-1 flex items-center gap-3"
+          >
+            <input
+              type="text"
+              value={taskInput}
+              onChange={(e) => setTaskInput(e.target.value)}
+              placeholder="Find the Submit button and click it"
+              disabled={isPipelineRunning}
+              className="flex-1 bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition shadow-inner"
+            />
+
+            <button
+              type="submit"
+              disabled={isPipelineRunning || !taskInput.trim()}
+              className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold px-5 py-2.5 rounded-lg text-xs transition flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+            >
+              <span>RUN AGENT</span>
+            </button>
+          </form>
+        </section>
+
+        {/* =========================================================================
+            MAIN WORKSPACE: remaining viewport height
+           ========================================================================= */}
+        <main className="flex-1 min-h-0 min-w-0 p-4 overflow-hidden bg-[#070b16]">
           {activeTab === 'agent' && (
             <AgentScreen
               runtimeStatus={runtimeStatus}
@@ -373,6 +399,7 @@ export const App: React.FC = () => {
               guardResult={guardResult}
               onElementSelect={setSelectedElement}
               selectedElement={selectedElement}
+              taskPrompt={taskInput}
             >
               <MockBrowserPage
                 ref={viewportContainerRef}
@@ -431,12 +458,12 @@ export const App: React.FC = () => {
         </main>
 
         {/* =========================================================================
-            BOTTOM STATUS BAR (Thin & Subtle)
+            BOTTOM STATUS BAR: height = 44px
            ========================================================================= */}
-        <footer className="h-8 bg-[#0a0e1c] border-t border-slate-800/80 px-6 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
-          <div className="flex items-center gap-6">
+        <footer className="h-[44px] shrink-0 border-t border-slate-800 bg-[#0a0f1d] px-6 flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex items-center gap-8">
             <div>
-              <span className="text-slate-500 mr-1.5">LOCAL INFERENCE</span>
+              <span className="text-slate-500 mr-1.5">LOCAL</span>
               <span className="text-blue-400 font-semibold">WebGPU</span>
             </div>
 
@@ -451,7 +478,7 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8">
             <div>
               <span className="text-slate-500 mr-1.5">LATENCY</span>
               <span className="text-slate-200 font-semibold">
