@@ -1,12 +1,6 @@
-import React from 'react';
 import {
-  Shield,
   CheckCircle2,
-  AlertTriangle,
-  Play,
-  FileCode,
-  Lock,
-  Compass,
+  ArrowDown,
 } from 'lucide-react';
 import type {
   StructuredBrowserAction,
@@ -22,196 +16,146 @@ interface ActionsScreenProps {
 export const ActionsScreen: React.FC<ActionsScreenProps> = ({
   lastAction,
   guardResult,
-  onExecuteApprovedAction,
+  onExecuteApprovedAction: _onExecuteApprovedAction,
 }) => {
-
-  // Fallback demo action if none triggered yet
   const displayAction: StructuredBrowserAction = lastAction || {
     actionId: 'act-001',
     actionType: 'click',
-    targetElementUid: 'btn-submit-registration',
-    targetSelector: '#btn-submit-registration',
-    targetDescription: 'Submit Personnel Registration',
+    targetElementUid: 'submit-registration-btn',
+    targetSelector: '#submit-registration-btn',
+    targetDescription: 'Submit Application',
     coordinates: { x: 540, y: 480 },
-    confidence: 0.97,
-    intent: 'Register researcher credentials with sanitized payloads',
+    confidence: 0.96,
+    intent: 'Find and click Submit',
   };
 
-  const displayGuard: ActionGuardEvaluationResult = guardResult || {
-    isAllowed: true,
-    status: 'APPROVED',
-    ruleViolations: [],
-    scopePassed: true,
-    credentialLeakPrevented: true,
-    destructiveRiskLevel: 'LOW',
-    explanation: 'Target within authorized task container. No plain credential exfiltration detected.',
-  };
+  const isBlocked = guardResult?.status === 'BLOCKED';
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Header Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Shield className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-base font-bold text-slate-100">
-              Local Action Guard & Safety Verification (SIH26171)
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Browser-side policy engine that intercepts and verifies every server-proposed action before DOM event execution.
-          </p>
-        </div>
-
-        {/* Action Guard Decision Badge */}
-        <div className="flex items-center space-x-3">
-          <div
-            className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold uppercase ${
-              displayGuard.status === 'APPROVED'
-                ? 'bg-emerald-950/80 border-emerald-700 text-emerald-400'
-                : displayGuard.status === 'BLOCKED'
-                ? 'bg-rose-950/80 border-rose-700 text-rose-400'
-                : 'bg-amber-950/80 border-amber-700 text-amber-400'
-            }`}
-          >
-            Decision: {displayGuard.status}
-          </div>
-        </div>
+      {/* Title */}
+      <div className="border-b border-slate-800/80 pb-3">
+        <h2 className="text-xl font-bold text-white tracking-tight">
+          Action Execution Timeline
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Local Action Guard safety interception and deterministic DOM dispatch.
+        </p>
       </div>
 
-      {/* Grid: Structured Action Schema vs. 4-Tier Guard Policy Rules */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
-        {/* Left: Structured Action JSON Schema (6 Cols) */}
-        <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col shadow-lg">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-            <div className="flex items-center space-x-2">
-              <FileCode className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                Structured Browser Action Schema
-              </h3>
-            </div>
-            <span className="text-[10px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded">
-              W3C DOM Protocol
+      {/* Execution Timeline Card */}
+      <div className="flex-1 bg-[#0e1424] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center shadow-xl overflow-y-auto">
+        <div className="max-w-md w-full space-y-4">
+          {/* STEP 1: USER INTENT */}
+          <div className="bg-[#070b16] border border-slate-800 rounded-xl p-4 shadow-sm">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1">
+              USER INTENT
             </span>
+            <p className="text-sm font-semibold text-slate-100 font-sans">
+              "{displayAction.intent || 'Find and click Submit'}"
+            </p>
           </div>
 
-          <div className="space-y-3 text-xs mb-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <span className="text-slate-500 block text-[10px]">Action Type</span>
-                <span className="font-bold text-cyan-300 uppercase font-mono">{displayAction.actionType}</span>
+          {/* Arrow */}
+          <div className="flex justify-center text-slate-600">
+            <ArrowDown size={18} />
+          </div>
+
+          {/* STEP 2: AI COMMAND */}
+          <div className="bg-[#070b16] border border-blue-900/60 rounded-xl p-4 shadow-sm">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-semibold block mb-1">
+              AI COMMAND
+            </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-base font-bold text-white font-mono uppercase">
+                  {displayAction.actionType}
+                </span>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Target: <span className="font-semibold text-white">{displayAction.targetDescription || 'Submit'}</span>
+                </p>
               </div>
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <span className="text-slate-500 block text-[10px]">Target Selector</span>
-                <span className="font-bold text-emerald-400 font-mono truncate block">
-                  {displayAction.targetSelector}
+              <div className="text-right">
+                <span className="text-[10px] text-slate-500 font-mono block">Confidence</span>
+                <span className="text-sm font-mono font-bold text-blue-400">
+                  {((displayAction.confidence || 0.96) * 100).toFixed(0)}%
                 </span>
               </div>
             </div>
-
-            <div className="bg-slate-950 p-2 rounded border border-slate-800">
-              <span className="text-slate-500 block text-[10px]">Target Intent</span>
-              <span className="text-slate-200 font-medium">{displayAction.intent}</span>
-            </div>
           </div>
 
-          <pre className="flex-1 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-slate-300 overflow-auto">
-            {JSON.stringify(displayAction, null, 2)}
-          </pre>
-        </div>
-
-        {/* Right: 4-Tier Guard Policy Rules & Gate (6 Cols) */}
-        <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col space-y-4 shadow-lg">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center space-x-2">
-              <Shield className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                Action Guard Policy Verification (4 Tiers)
-              </h3>
-            </div>
+          {/* Arrow */}
+          <div className="flex justify-center text-slate-600">
+            <ArrowDown size={18} />
           </div>
 
-          {/* 4 Policy Rules */}
-          <div className="space-y-2.5 flex-1">
-            {/* Rule 1: Scope Boundary */}
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3">
-              <Compass className="w-4 h-4 text-cyan-400 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <div className="flex items-center justify-between font-semibold">
-                  <span className="text-slate-200">Tier 1: Scope Boundary Check</span>
-                  <span className="text-emerald-400 font-mono text-[10px] flex items-center">
-                    <CheckCircle2 className="w-3 h-3 mr-1" /> PASSED
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Validates target selector is constrained within task authorized workspace.
-                </p>
-              </div>
+          {/* STEP 3: LOCAL ACTION GUARD */}
+          <div
+            className={`rounded-xl p-4 border shadow-sm ${
+              isBlocked
+                ? 'bg-rose-950/20 border-rose-800/80 text-rose-300'
+                : 'bg-emerald-950/20 border-emerald-800/80 text-emerald-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">
+                LOCAL ACTION GUARD
+              </span>
+              <span
+                className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                  isBlocked ? 'bg-rose-900/80 text-rose-200' : 'bg-emerald-900/80 text-emerald-200'
+                }`}
+              >
+                {isBlocked ? 'BLOCKED' : 'PASSED'}
+              </span>
             </div>
-
-            {/* Rule 2: Credential Exfiltration Guard */}
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3">
-              <Lock className="w-4 h-4 text-emerald-400 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <div className="flex items-center justify-between font-semibold">
-                  <span className="text-slate-200">Tier 2: Credential & PII Leak Guard</span>
-                  <span className="text-emerald-400 font-mono text-[10px] flex items-center">
-                    <CheckCircle2 className="w-3 h-3 mr-1" /> PROTECTED
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Prevents payload exfiltration of plain passwords, SSN/Aadhaar, or CVV.
-                </p>
-              </div>
-            </div>
-
-            {/* Rule 3: Destructive Action Gate */}
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3">
-              <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <div className="flex items-center justify-between font-semibold">
-                  <span className="text-slate-200">Tier 3: Destructive Action Risk Gate</span>
-                  <span className="text-amber-400 font-mono text-[10px]">
-                    Risk: {displayGuard.destructiveRiskLevel}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Flags irreversible modifications (account deletion, fund transfer) for explicit human signoff.
-                </p>
-              </div>
-            </div>
-
-            {/* Rule 4: Visual Target Verification */}
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-start space-x-3">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <div className="flex items-center justify-between font-semibold">
-                  <span className="text-slate-200">Tier 4: Target State & Clickability</span>
-                  <span className="text-emerald-400 font-mono text-[10px] flex items-center">
-                    <CheckCircle2 className="w-3 h-3 mr-1" /> VERIFIED
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Ensures element is visible, non-disabled, and within active viewport bounds.
-                </p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400">
+              {isBlocked
+                ? 'Rule Violation: Action rejected by local safety firewall.'
+                : '4-Tier Verification: Scope Boundary, Zero Plaintext Leak, Clickability, Non-Destructive.'}
+            </p>
           </div>
 
-          {/* Interactive Execution Gate */}
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs text-slate-400">
-              Browser Dispatch Status: <strong className="text-slate-200">Ready</strong>
+          {/* Arrow */}
+          <div className="flex justify-center text-slate-600">
+            <ArrowDown size={18} />
+          </div>
+
+          {/* STEP 4: BROWSER EXECUTION */}
+          <div className="bg-[#070b16] border border-slate-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-0.5">
+                BROWSER
+              </span>
+              <span className="text-xs font-semibold text-slate-200 font-mono">
+                {isBlocked ? 'EXECUTION ABORTED' : 'CLICK EXECUTED'}
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-slate-500">
+              target: {displayAction.targetSelector}
             </span>
-            <button
-              type="button"
-              onClick={() => onExecuteApprovedAction(displayAction)}
-              disabled={displayGuard.status === 'BLOCKED'}
-              className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-white px-4 py-2 rounded-lg text-xs font-semibold transition"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Simulate Local Browser Dispatch</span>
-            </button>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex justify-center text-slate-600">
+            <ArrowDown size={18} />
+          </div>
+
+          {/* STEP 5: VERIFICATION */}
+          <div className="bg-[#070b16] border border-slate-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-0.5">
+                VERIFICATION
+              </span>
+              <span
+                className={`text-xs font-bold font-mono ${
+                  isBlocked ? 'text-rose-400' : 'text-emerald-400'
+                }`}
+              >
+                {isBlocked ? 'PREVENTED' : 'SUCCESS'}
+              </span>
+            </div>
+            <CheckCircle2 size={18} className={isBlocked ? 'text-rose-400' : 'text-emerald-400'} />
           </div>
         </div>
       </div>

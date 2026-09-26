@@ -28,7 +28,7 @@ export const SystemScreen: React.FC<SystemScreenProps> = ({
       if (res.ok) {
         const data = await res.json();
         setApiHealth('online');
-        setBackendUptime(data.uptimeSeconds || 120);
+        setBackendUptime(data.uptimeSeconds || 180);
       } else {
         setApiHealth('offline');
       }
@@ -42,206 +42,176 @@ export const SystemScreen: React.FC<SystemScreenProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col h-full space-y-4">
-      {/* Top Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Cpu className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-base font-bold text-slate-100">
-              System Runtime & Architecture Configuration (SIH26171)
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage Browser Extension pairing, ONNX WebGPU/WASM execution modes, and Server Reasoning endpoints.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={checkHealth}
-          className="flex items-center space-x-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition"
-        >
-          <RotateCw className="w-3.5 h-3.5" />
-          <span>Refresh System Health</span>
-        </button>
-      </div>
-
-      {/* Grid: Extension Status, Vision Runtime, and Backend Connection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Browser Extension Bridge */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-              <div className="flex items-center space-x-2">
-                <Globe className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  Browser Extension (MV3)
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold">
-                READY TO LOAD
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              Functional Chromium Manifest V3 extension ready for unpack-loading in Chrome, Edge, and Brave.
-            </p>
-            <div className="space-y-1.5 text-[11px] font-mono text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <div className="text-cyan-400 font-bold">Folder: ISRO/extension</div>
-              <div>Permissions: activeTab, scripting, storage</div>
-              <div>Components: contentScript, background worker, popup</div>
-            </div>
-          </div>
-          <div className="mt-4 pt-2 border-t border-slate-800 text-[11px] text-emerald-400 flex items-center justify-between">
-            <span className="flex items-center space-x-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Manifest V3 Verified</span>
-            </span>
-            <span className="text-slate-400 font-mono text-[10px]">Min. Privileges</span>
-          </div>
-        </div>
-
-        {/* Card 2: Local Vision Engine (ONNX Runtime Web) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-              <div className="flex items-center space-x-2">
-                <Cpu className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  Vision Inference Engine
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-bold">
-                {runtimeStatus.activeMode === 'heuristic_canvas_fallback' ? 'FALLBACK' : 'ONNX ACTIVE'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              Hardware acceleration probe & edge model deployment state.
-            </p>
-
-            <div className="space-y-1.5 text-[11px] font-mono text-slate-400 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <div>Runtime: {runtimeStatus.modeDisplayName}</div>
-              <div>Device: {runtimeStatus.deviceLabel}</div>
-              <div>
-                Model Weights:{' '}
-                <span className="text-amber-400">
-                  {runtimeStatus.isModelLoaded ? 'Loaded in VRAM' : 'Offline Heuristic Fallback (Demo)'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-2 border-t border-slate-800">
-            <label className="text-[11px] text-slate-400 block mb-1.5">Switch Inference Mode:</label>
-            <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
-              <button
-                type="button"
-                onClick={() => onChangeRuntimeMode('heuristic_canvas_fallback')}
-                className={`p-1.5 rounded border transition ${
-                  runtimeStatus.activeMode === 'heuristic_canvas_fallback'
-                    ? 'bg-amber-950 border-amber-600 text-amber-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Canvas (Demo)
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeRuntimeMode('wasm')}
-                className={`p-1.5 rounded border transition ${
-                  runtimeStatus.activeMode === 'wasm'
-                    ? 'bg-cyan-950 border-cyan-600 text-cyan-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                WASM SIMD
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeRuntimeMode('webgpu')}
-                className={`p-1.5 rounded border transition ${
-                  runtimeStatus.activeMode === 'webgpu'
-                    ? 'bg-emerald-950 border-emerald-600 text-emerald-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                WebGPU
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Server Reasoning Engine */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
-              <div className="flex items-center space-x-2">
-                <Server className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  Server Reasoning Engine
-                </h3>
-              </div>
-              <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${
-                  apiHealth === 'online'
-                    ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                    : apiHealth === 'checking'
-                    ? 'bg-amber-950 text-amber-400 border-amber-800'
-                    : 'bg-rose-950 text-rose-400 border-rose-800'
-                }`}
-              >
-                {apiHealth.toUpperCase()}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              Node.js Express reasoning service hosting action planners & adaptive inference.
-            </p>
-            <div className="space-y-1.5 text-[11px] font-mono text-slate-400 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <div>Endpoint: http://localhost:3001</div>
-              <div>Tasks API: /api/tasks</div>
-              <div>
-                Uptime:{' '}
-                {backendUptime ? `${Math.round(backendUptime)} seconds` : 'Online'}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-            <span>Connection Health</span>
-            <span className="text-emerald-400 font-mono">100% OK</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Target Architecture Specification Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg">
-        <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex items-center space-x-2">
-          <Shield className="w-4 h-4 text-cyan-400" />
-          <span>PrivyVision Architecture Flow (SIH26171)</span>
-        </h3>
-        <p className="text-xs text-slate-400 mb-3">
-          Browser Extension → Local Screenshot + DOM/A11y + OCR → Local Visual Perception → Local PII Detection → Local Redaction → Privacy Firewall → Sanitized Context → Server LLM/VLM → Structured Action → Local Action Guard → Browser Execution → Visual Verification.
+    <div className="flex flex-col h-full space-y-4 overflow-y-auto pr-1">
+      {/* Title */}
+      <div className="border-b border-slate-800/80 pb-3">
+        <h2 className="text-xl font-bold text-white tracking-tight">
+          System Architecture & Technical Telemetry
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Hardware acceleration, runtime execution modes, and Manifest V3 extension integration.
         </p>
-        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-cyan-300/90 overflow-x-auto whitespace-pre">
-{`Browser Extension ──► Local Viewport Frame (WebGPU/Canvas) + DOM Hierarchy + OCR Text
-                   │
-                   ▼
-       Local Visual Perception Engine (Grounding & Bounding Boxes)
-                   │
-                   ▼
-          Local PII Detection (Regex + Semantic Classifier)
-                   │
-                   ▼
-         Attention Firewall (Zero-Trust Plaintext Masking)
-                   │
-                   ▼ [Sanitized Context Only]
-         Server LLM/VLM Reasoning (Task Decomposition & Target)
-                   │
-                   ▼ [Proposed Structured Action]
-         Local Action Guard (4-Tier Policy & Gate Verification)
-                   │
-                   ▼
-       Client-Side Browser Execution & Visual Delta Verification`}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Hardware Acceleration Probe */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+            <div className="flex items-center gap-2">
+              <Cpu size={18} className="text-blue-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Hardware Acceleration
+              </h3>
+            </div>
+            <span
+              className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                runtimeStatus.isRealHardwareAccelerated
+                  ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-400'
+                  : 'bg-amber-950/60 border border-amber-800/60 text-amber-400'
+              }`}
+            >
+              {runtimeStatus.isRealHardwareAccelerated ? 'Hardware WebGPU Active' : 'Fallback Engine'}
+            </span>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <div>
+              <span className="text-slate-400 block mb-0.5">Detected Graphics Adapter</span>
+              <p className="font-mono text-slate-200 bg-[#070b16] p-2 rounded border border-slate-800">
+                {runtimeStatus.deviceLabel}
+              </p>
+            </div>
+            <div>
+              <span className="text-slate-400 block mb-0.5">Runtime Execution Mode</span>
+              <p className="font-mono text-cyan-400 bg-[#070b16] p-2 rounded border border-slate-800">
+                {runtimeStatus.modeDisplayName}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Runtime Mode Selector */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+            <div className="flex items-center gap-2">
+              <Shield size={18} className="text-emerald-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Execution Mode Selector
+              </h3>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 mb-3">
+            Manually switch between hardware-accelerated WebGPU, multi-threaded WASM SIMD, and canvas fallback.
+          </p>
+
+          <div className="space-y-2">
+            {[
+              {
+                id: 'webgpu' as VisionRuntimeMode,
+                name: 'WebGPU (Hardware Accelerated)',
+                desc: 'Uses local GPU compute shaders for sub-15ms visual inference.',
+              },
+              {
+                id: 'wasm' as VisionRuntimeMode,
+                name: 'WebAssembly (WASM SIMD)',
+                desc: 'Multi-threaded CPU fallback with WebAssembly SIMD.',
+              },
+              {
+                id: 'heuristic_canvas_fallback' as VisionRuntimeMode,
+                name: 'Edge Canvas & Heuristic Fallback',
+                desc: 'Client-side canvas visual grounding without dedicated GPU.',
+              },
+            ].map((m) => (
+              <div
+                key={m.id}
+                onClick={() => onChangeRuntimeMode(m.id)}
+                className={`p-3 rounded-lg border cursor-pointer transition ${
+                  runtimeStatus.activeMode === m.id
+                    ? 'bg-blue-950/40 border-blue-500 shadow-sm'
+                    : 'bg-[#070b16] border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white">{m.name}</span>
+                  {runtimeStatus.activeMode === m.id && (
+                    <CheckCircle2 size={14} className="text-blue-400" />
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">{m.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chromium Extension Bridge */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+            <div className="flex items-center gap-2">
+              <Globe size={18} className="text-blue-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Chromium Manifest V3 Extension
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded">
+              Ready in /extension
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-400 mb-3">
+            Load the standalone Chromium extension in Chrome (<span className="font-mono text-slate-300">chrome://extensions</span>) to run PrivyVision on any live webpage across the internet.
+          </p>
+
+          <div className="bg-[#070b16] p-3 rounded-lg border border-slate-800 font-mono text-xs space-y-1 text-slate-300">
+            <div>• Path: <span className="text-blue-400">extension/</span></div>
+            <div>• Permissions: <span className="text-emerald-400">activeTab, scripting, storage (Minimum)</span></div>
+            <div>• Service Worker: <span className="text-slate-200">background.js</span></div>
+            <div>• Content Script: <span className="text-slate-200">contentScript.js</span></div>
+          </div>
+        </div>
+
+        {/* Backend Reasoning Endpoint */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+            <div className="flex items-center gap-2">
+              <Server size={18} className="text-blue-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Backend Server
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                  apiHealth === 'online'
+                    ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-400'
+                    : 'bg-rose-950/60 border border-rose-800/60 text-rose-400'
+                }`}
+              >
+                {apiHealth === 'online' ? 'Online (Port 3001)' : 'Offline / Checking'}
+              </span>
+              <button
+                type="button"
+                onClick={checkHealth}
+                className="text-slate-400 hover:text-white p-1"
+                title="Refresh health"
+              >
+                <RotateCw size={12} />
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 mb-3">
+            Express server hosting LLM reasoning API endpoints, intent planner, and live proxy extractors.
+          </p>
+
+          <div className="bg-[#070b16] p-3 rounded-lg border border-slate-800 font-mono text-xs space-y-1 text-slate-300">
+            <div>• Health Endpoint: <span className="text-emerald-400">GET /api/health</span></div>
+            <div>• Action Proposer: <span className="text-blue-400">POST /api/actions/propose</span></div>
+            <div>• Proxy Extractor: <span className="text-blue-400">POST /api/proxy/extract</span></div>
+            {backendUptime !== null && (
+              <div>• Uptime: <span className="text-slate-200">{backendUptime} seconds</span></div>
+            )}
+          </div>
         </div>
       </div>
     </div>

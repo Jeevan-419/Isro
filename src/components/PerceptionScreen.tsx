@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Eye,
-  Cpu,
+  Lock,
   Search,
 } from 'lucide-react';
 import type {
@@ -17,237 +16,228 @@ interface PerceptionScreenProps {
 }
 
 export const PerceptionScreen: React.FC<PerceptionScreenProps> = ({
-  runtimeStatus,
+  runtimeStatus: _runtimeStatus,
   groundedElements,
   onSelectElement,
   selectedElement,
 }) => {
-  const [filterType, setFilterType] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredElements = groundedElements.filter((el) => {
-    if (filterType !== 'all' && el.type !== filterType) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        el.label.toLowerCase().includes(q) ||
-        el.cssSelector.toLowerCase().includes(q) ||
-        (el.domId && el.domId.toLowerCase().includes(q)) ||
-        el.type.toLowerCase().includes(q)
-      );
-    }
-    return true;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      el.label.toLowerCase().includes(q) ||
+      el.type.toLowerCase().includes(q) ||
+      (el.domId && el.domId.toLowerCase().includes(q))
+    );
   });
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Header Banner: Real Hardware Runtime & Perception Engine */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Eye className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-base font-bold text-slate-100">
-              On-Device Visual Perception Engine (SIH26171)
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Fusing Browser-side Canvas Vision, DOM Hierarchy, W3C Accessibility Tree, and In-situ OCR.
-          </p>
-        </div>
-
-        {/* Runtime Probe Status */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-            <span className="text-slate-500 block text-[10px]">Execution Mode</span>
-            <span className="font-mono text-cyan-400 font-semibold">
-              {runtimeStatus.modeDisplayName}
-            </span>
-          </div>
-          <div className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-            <span className="text-slate-500 block text-[10px]">Perception Latency</span>
-            <span className="font-mono text-emerald-400 font-semibold">
-              {runtimeStatus.lastInferenceMs.toFixed(1)} ms
-            </span>
-          </div>
-          <div className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-            <span className="text-slate-500 block text-[10px]">Grounded Targets</span>
-            <span className="font-mono text-amber-400 font-semibold">
-              {groundedElements.length} Elements
-            </span>
-          </div>
-        </div>
+      {/* Title */}
+      <div className="border-b border-slate-800/80 pb-3">
+        <h2 className="text-lg font-bold text-white tracking-tight">
+          Visual Perception Analysis
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Multi-modal element grounding fusing on-device Canvas Vision, DOM attributes, W3C Accessibility, and OCR.
+        </p>
       </div>
 
-      {/* Main Grounding Matrix Table & Detailed Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
-        {/* Table List (8 Cols) */}
-        <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl flex flex-col overflow-hidden shadow-lg">
-          {/* Controls Bar */}
-          <div className="p-3 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Filter by label, ID, selector..."
-                className="w-full bg-slate-900 text-xs text-slate-200 pl-9 pr-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            {/* Type Filter Buttons */}
-            <div className="flex flex-wrap items-center gap-1 text-[11px]">
-              {['all', 'button', 'input', 'link', 'checkbox', 'dropdown', 'dialog'].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setFilterType(t)}
-                  className={`px-2.5 py-1 rounded capitalize font-medium transition ${
-                    filterType === t
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Grounding Matrix Table */}
-          <div className="flex-1 overflow-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950/80 sticky top-0 text-[11px] uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-800">
-                <tr>
-                  <th className="p-3">Element / Label</th>
-                  <th className="p-3">Type</th>
-                  <th className="p-3">Detection Source</th>
-                  <th className="p-3">Confidence</th>
-                  <th className="p-3">Bounding Box (x,y,w,h)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
-                {filteredElements.map((el) => {
-                  const isSelected = selectedElement?.uid === el.uid;
-                  return (
-                    <tr
-                      key={el.uid}
-                      onClick={() => onSelectElement(el)}
-                      className={`cursor-pointer transition hover:bg-slate-800/50 ${
-                        isSelected ? 'bg-cyan-950/40 border-l-2 border-cyan-400' : ''
-                      }`}
-                    >
-                      <td className="p-3 max-w-[200px] truncate">
-                        <span className="font-semibold text-slate-200 block truncate">
-                          {el.label || el.ocrText || 'Unnamed'}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-500 block truncate">
-                          {el.cssSelector}
-                        </span>
-                      </td>
-
-                      <td className="p-3">
-                        <span className="font-mono uppercase text-[10px] bg-slate-800 px-2 py-0.5 rounded text-cyan-300">
-                          {el.type}
-                        </span>
-                      </td>
-
-                      <td className="p-3">
-                        <span className="text-[11px] text-amber-300 font-mono flex items-center space-x-1">
-                          <Eye className="w-3 h-3 text-amber-400" />
-                          <span>{el.source}</span>
-                        </span>
-                      </td>
-
-                      <td className="p-3 font-mono text-emerald-400 font-semibold">
-                        {(el.confidence * 100).toFixed(0)}%
-                      </td>
-
-                      <td className="p-3 font-mono text-[10px] text-slate-400">
-                        {el.boundingBox.x}, {el.boundingBox.y}, {el.boundingBox.width}x{el.boundingBox.height}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Deep Grounding Spec Inspector (4 Cols) */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col space-y-4 shadow-lg">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center space-x-2">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-semibold text-slate-200">Multi-Modal Fusion Details</h3>
-            </div>
+      {/* Analysis Workspace: Split Layout */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0">
+        {/* LEFT: Large Screenshot / Visual Canvas (8 Cols) */}
+        <div className="lg:col-span-8 bg-[#0e1424] border border-slate-800 rounded-xl p-4 flex flex-col shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800/80 mb-3">
+            <span className="font-mono text-[11px] text-slate-400">GROUNDED FRAME BUFFER (100% ON-DEVICE)</span>
             {selectedElement && (
-              <span className="text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded">
-                Grounded
+              <span className="text-blue-400 font-mono text-[11px]">
+                Selected: {selectedElement.label} ({selectedElement.type.toUpperCase()})
               </span>
             )}
           </div>
 
-          {selectedElement ? (
-            <div className="space-y-3 text-xs overflow-auto flex-1">
-              <div>
-                <span className="text-slate-500 text-[11px] block">Accessible Label & OCR:</span>
-                <div className="bg-slate-950 p-2 rounded border border-slate-800 text-slate-200 font-medium">
-                  {selectedElement.label || selectedElement.ocrText || 'None'}
+          {/* Realistic Viewport Canvas Simulation */}
+          <div className="flex-1 bg-[#070b16] border border-slate-800/80 rounded-lg p-5 relative overflow-y-auto min-h-[460px]">
+            {/* Rendered mockup of the page */}
+            <div className="max-w-md mx-auto space-y-4 pt-2">
+              <div className="border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-slate-200">SpaceOps Clearance Portal</h3>
+                <p className="text-[11px] text-slate-400">Personnel Identity Registration</p>
+              </div>
+
+              {/* Form item: Name */}
+              <div className="space-y-1 relative">
+                <label className="text-[11px] text-slate-400 block">Full Legal Name</label>
+                <div
+                  onClick={() => {
+                    const el = groundedElements.find((e) => e.domId === 'input-full-name');
+                    if (el) onSelectElement(el);
+                  }}
+                  className={`p-2 rounded bg-[#0b1020] border text-xs text-slate-200 cursor-pointer transition ${
+                    selectedElement?.domId === 'input-full-name'
+                      ? 'border-blue-500 ring-2 ring-blue-500/40 bg-blue-950/20'
+                      : 'border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  Dr. Vikram Sarabhai
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                  <span className="text-slate-500 text-[10px] block">Visual UI Type</span>
-                  <span className="font-bold text-cyan-300 uppercase">{selectedElement.type}</span>
+              {/* Form item: Email */}
+              <div className="space-y-1 relative">
+                <div className="flex justify-between items-center text-[11px]">
+                  <label className="text-slate-400">Official Email Address</label>
+                  <span className="text-[9px] text-rose-400 font-mono">PII</span>
                 </div>
-                <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                  <span className="text-slate-500 text-[10px] block">ARIA Role</span>
-                  <span className="font-bold text-emerald-400 font-mono">{selectedElement.role}</span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-slate-500 text-[11px] block">Detection Pipeline Origin:</span>
-                <div className="bg-slate-950 p-2 rounded border border-slate-800 text-amber-300 font-mono text-[11px]">
-                  {selectedElement.source}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-slate-500 text-[11px] block">Spatial Coordinate Spec:</span>
-                <div className="bg-slate-950 p-2 rounded border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1">
-                  <div>X: {selectedElement.boundingBox.x}px | Y: {selectedElement.boundingBox.y}px</div>
-                  <div>Width: {selectedElement.boundingBox.width}px | Height: {selectedElement.boundingBox.height}px</div>
+                <div
+                  onClick={() => {
+                    const el = groundedElements.find((e) => e.domId === 'input-email');
+                    if (el) onSelectElement(el);
+                  }}
+                  className={`p-2 rounded bg-[#0b1020] border text-xs text-slate-200 cursor-pointer font-mono transition ${
+                    selectedElement?.domId === 'input-email'
+                      ? 'border-rose-500 ring-2 ring-rose-500/40 bg-rose-950/20'
+                      : 'border-rose-900/60 hover:border-rose-700'
+                  }`}
+                >
+                  vikram.s@isro.gov.in
                 </div>
               </div>
 
-              <div>
-                <span className="text-slate-500 text-[11px] block">CSS Target Selector:</span>
-                <div className="bg-slate-950 p-2 rounded border border-slate-800 font-mono text-[10px] text-cyan-400 truncate">
-                  {selectedElement.cssSelector}
+              {/* Form item: Phone */}
+              <div className="space-y-1 relative">
+                <div className="flex justify-between items-center text-[11px]">
+                  <label className="text-slate-400">Phone Number</label>
+                  <span className="text-[9px] text-rose-400 font-mono">PII</span>
+                </div>
+                <div
+                  onClick={() => {
+                    const el = groundedElements.find((e) => e.domId === 'input-phone');
+                    if (el) onSelectElement(el);
+                  }}
+                  className={`p-2 rounded bg-[#0b1020] border text-xs text-slate-200 cursor-pointer font-mono transition ${
+                    selectedElement?.domId === 'input-phone'
+                      ? 'border-rose-500 ring-2 ring-rose-500/40 bg-rose-950/20'
+                      : 'border-rose-900/60 hover:border-rose-700'
+                  }`}
+                >
+                  +91 98450 12345
                 </div>
               </div>
 
-              {selectedElement.isSensitive && (
-                <div className="bg-rose-950/40 border border-rose-800 p-2.5 rounded-lg text-rose-300 text-xs">
-                  <div className="font-bold mb-1">Confidential PII Protected:</div>
-                  <div className="text-[11px] text-rose-400">
-                    Category: {selectedElement.sensitiveCategory}
-                  </div>
-                  <div className="text-[10px] font-mono mt-1 bg-rose-950 p-1 rounded">
-                    Token: {selectedElement.redactedPlaceholder}
-                  </div>
+              {/* Form item: Password */}
+              <div className="space-y-1 relative">
+                <div className="flex justify-between items-center text-[11px]">
+                  <label className="text-slate-400">Master Password</label>
+                  <span className="text-[9px] text-rose-400 font-mono">PII</span>
                 </div>
-              )}
+                <div
+                  onClick={() => {
+                    const el = groundedElements.find((e) => e.domId === 'input-password');
+                    if (el) onSelectElement(el);
+                  }}
+                  className={`p-2 rounded bg-[#0b1020] border text-xs text-slate-200 cursor-pointer font-mono transition ${
+                    selectedElement?.domId === 'input-password'
+                      ? 'border-rose-500 ring-2 ring-rose-500/40 bg-rose-950/20'
+                      : 'border-rose-900/60 hover:border-rose-700'
+                  }`}
+                >
+                  ••••••••••••••••
+                </div>
+              </div>
+
+              {/* Form item: Submit Button */}
+              <div className="pt-3">
+                <div
+                  onClick={() => {
+                    const el = groundedElements.find((e) => /submit/i.test(e.label) || e.domId?.includes('submit'));
+                    if (el) onSelectElement(el);
+                  }}
+                  className={`w-full py-2.5 px-4 rounded-lg bg-blue-600 text-white text-xs font-semibold text-center cursor-pointer transition ${
+                    selectedElement?.type === 'button' && /submit/i.test(selectedElement.label)
+                      ? 'ring-2 ring-emerald-400 bg-blue-500 shadow-md'
+                      : 'hover:bg-blue-500'
+                  }`}
+                >
+                  Submit Application
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4 space-y-2">
-              <Eye className="w-8 h-8 text-slate-700 animate-pulse" />
-              <p>Select any row from the grounding matrix table to inspect its coordinate spec, OCR string, and multi-modal fusion origin.</p>
+          </div>
+        </div>
+
+        {/* RIGHT: Detected Elements List (4 Cols) */}
+        <div className="lg:col-span-4 bg-[#0e1424] border border-slate-800 rounded-xl p-4 flex flex-col shadow-xl">
+          {/* Header & Search */}
+          <div className="pb-3 border-b border-slate-800/80 mb-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+                Detected Elements
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                {filteredElements.length} targets
+              </span>
             </div>
-          )}
+
+            <div className="relative">
+              <Search size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter elements..."
+                className="w-full bg-[#070b16] border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Compact Rows List */}
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {filteredElements.map((el) => {
+              const isSelected = selectedElement?.uid === el.uid;
+              const isPii = el.isSensitive;
+
+              return (
+                <div
+                  key={el.uid}
+                  onClick={() => onSelectElement(el)}
+                  className={`p-2.5 rounded-lg border cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-blue-950/40 border-blue-500 shadow-sm'
+                      : 'bg-[#070b16] border-slate-800/80 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-slate-200 truncate max-w-[160px]">
+                      {el.label || el.domId || el.type}
+                    </span>
+                    <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                      {el.type.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                    <span className="text-blue-400 font-semibold">
+                      {(el.confidence * 100).toFixed(0)}%
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500 text-[10px]">
+                        {el.source.replace('Vision + DOM + A11y + OCR', 'VISION + DOM')}
+                      </span>
+                      {isPii && (
+                        <span className="flex items-center gap-0.5 text-rose-400 bg-rose-950/60 px-1 py-0.2 rounded text-[9px] font-bold">
+                          <Lock size={9} />
+                          PII
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

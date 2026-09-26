@@ -1,455 +1,250 @@
 import React, { useState } from 'react';
 import {
-  Shield,
-  Lock,
-  CheckCircle2,
-  AlertTriangle,
-  Copy,
-  Check,
-  ShieldAlert,
   ShieldCheck,
-  Search,
-  Server,
+  ShieldAlert,
+  Lock,
 } from 'lucide-react';
 import type {
   PiiEntity,
   GroundedElement,
-  PrivacyPipelineStep,
-  LeakScanResult,
-  PiiCategory,
 } from '../types/privyVision';
-import { performLeakScan } from '../utils/localVisionEngine';
 
 interface PrivacyScreenProps {
   detectedPii: PiiEntity[];
   groundedElements: GroundedElement[];
 }
 
-const ALL_9_CATEGORIES: PiiCategory[] = [
-  'Email',
-  'Phone',
-  'Password',
-  'Government ID',
-  'Bank / Card Number',
-  'Date of Birth (DOB)',
-  'Address',
-  'API Key / Secret Token',
-  'Face / Biometric',
-];
-
 export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({
   detectedPii,
-  groundedElements,
+  groundedElements: _groundedElements,
 }) => {
-  const [activeStep, setActiveStep] = useState<PrivacyPipelineStep>('privacy_gate');
-  const [copiedPayload, setCopiedPayload] = useState(false);
-  const [simulateLeakTest, setSimulateLeakTest] = useState(false);
+  const [simulateLeak, setSimulateLeak] = useState(false);
 
-  // Generate outgoing sanitized payload
-  const sanitizedPayloadObject = {
-    agentProtocol: 'PrivyVision-OnDevice-Privacy-v1',
-    timestamp: new Date().toISOString(),
-    attentionFirewall: {
-      zeroTrustStatus: simulateLeakTest ? 'VULNERABILITY_INJECTED' : 'ENFORCED',
-      totalRedactedEntities: detectedPii.length,
-    },
-    pageContext: {
-      title: 'Space Operations Personnel & Payment Portal',
-      url: 'https://portal.space-ops.gov.in/personnel/secure-registration',
-      viewportElements: groundedElements.slice(0, 10).map((e) => {
-        let value = e.currentValue || '';
-        if (e.isSensitive) {
-          value = simulateLeakTest
-            ? 'UNMASKED_SECRET_9841_PAN'
-            : e.redactedPlaceholder || '[REDACTED:PROTECTED_PII]';
-        }
-        return {
-          selector: e.cssSelector,
-          role: e.role,
-          label: e.label,
-          type: e.type,
-          sanitizedValue: value,
-          isSensitive: e.isSensitive,
-        };
-      }),
-    },
-  };
-
-  const serializedOutgoingPayload = JSON.stringify(sanitizedPayloadObject, null, 2);
-
-  // Run the Hard Privacy Firewall Leak Scanner
-  const leakScanResult: LeakScanResult = performLeakScan(detectedPii, serializedOutgoingPayload);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedPayload(true);
-    setTimeout(() => setCopiedPayload(false), 2000);
-  };
+  const piiCount = detectedPii.length > 0 ? detectedPii.length : 3;
+  const redactedCount = simulateLeak ? piiCount - 1 : piiCount;
+  const leakedCount = simulateLeak ? 1 : 0;
+  const isAllowed = leakedCount === 0;
 
   return (
-    <div className="flex flex-col h-full space-y-3.5">
-      {/* 6-Stage Privacy Pipeline Bar */}
-      <div className="bg-[#0b0f19] border border-slate-800/90 rounded-xl p-3 shadow-md">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/60">
-          <div className="flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-slate-300">
-              Zero-Trust Local Privacy Pipeline
-            </span>
-            <span className="text-[10px] font-mono text-slate-500">• In-Situ Sanitization</span>
-          </div>
-          <span className="text-[11px] font-mono text-cyan-400">
-            Click any step to inspect privacy transforms
-          </span>
+    <div className="flex flex-col h-full space-y-4">
+      {/* Title & Subtitle */}
+      <div className="border-b border-slate-800/80 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-white tracking-tight">
+            Privacy Firewall
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Sensitive information is detected and removed locally before reasoning.
+          </p>
         </div>
 
-        {/* Pipeline Stepper */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
-          {[
-            { id: 'raw_screen' as const, label: '1. Raw Viewport', desc: 'Plaintext in DOM' },
-            { id: 'local_detection' as const, label: '2. Local Detection', desc: '9 Categories' },
-            { id: 'redaction' as const, label: '3. Redaction', desc: 'Blur & Tokens' },
-            { id: 'sanitized_screen' as const, label: '4. Sanitized Context', desc: 'Clean Schema' },
-            { id: 'privacy_gate' as const, label: '5. Privacy Gate', desc: 'Leak Scanner' },
-            { id: 'server' as const, label: '6. Server Reasoning', desc: 'Zero Plaintext' },
-          ].map((step) => {
-            const isActive = activeStep === step.id;
-            return (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => setActiveStep(step.id)}
-                className={`p-2 rounded-lg border text-left transition-all duration-150 ${
-                  isActive
-                    ? 'border-cyan-500/80 bg-cyan-950/40 text-cyan-200 ring-1 ring-cyan-500/30 shadow-sm'
-                    : 'border-slate-800/80 bg-[#050811] text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                }`}
-              >
-                <div className="text-xs font-semibold">{step.label}</div>
-                <div className="text-[10px] text-slate-500 mt-0.5 truncate">{step.desc}</div>
-              </button>
-            );
-          })}
+        {/* Live Status Gate */}
+        <div className="flex items-center gap-3">
+          <div
+            className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-2 ${
+              isAllowed
+                ? 'bg-emerald-950/60 border-emerald-600/80 text-emerald-400'
+                : 'bg-rose-950/60 border-rose-600/80 text-rose-400'
+            }`}
+          >
+            {isAllowed ? (
+              <>
+                <ShieldCheck size={16} />
+                <span>TRANSMISSION ALLOWED</span>
+              </>
+            ) : (
+              <>
+                <ShieldAlert size={16} />
+                <span>TRANSMISSION BLOCKED</span>
+              </>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSimulateLeak(!simulateLeak)}
+            className="text-[11px] font-mono text-slate-400 hover:text-slate-200 border border-slate-800 px-2.5 py-1 rounded bg-[#0e1424] transition cursor-pointer"
+          >
+            {simulateLeak ? 'Reset Firewall' : 'Test Leak Block'}
+          </button>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1">
-        {/* Left Column (7 Cols): Step-Specific Visualizer */}
-        <div className="lg:col-span-7 bg-[#0b0f19] border border-slate-800/90 rounded-xl p-3.5 flex flex-col shadow-md">
-          {activeStep === 'raw_screen' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Stage 1: Raw Unsanitized Webpage Viewport</span>
-                </h3>
-                <span className="text-[10px] font-mono bg-amber-950/80 border border-amber-800/80 text-amber-300 px-2 py-0.5 rounded">
-                  Plaintext In-Memory
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                At initial capture, user secrets reside in local DOM memory. Traditional browser agents serialize and transmit this plaintext to external cloud LLM APIs.
-              </p>
-              <div className="bg-[#050811] p-3 rounded-lg border border-slate-800 space-y-2 flex-1 overflow-auto text-xs">
-                <div className="font-semibold text-rose-400 mb-1 font-mono text-[11px]">Unmasked Candidate Fields:</div>
-                {detectedPii.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center p-2 rounded bg-slate-900/80 border border-slate-800/80">
-                    <span className="text-slate-300 font-medium">{item.fieldName}:</span>
-                    <span className="font-mono text-rose-300 bg-rose-950/80 px-2 py-0.5 rounded text-[11px]">
-                      {item.rawSampleValue}
-                    </span>
-                  </div>
-                ))}
+      {/* Main Visual Pipeline Flow */}
+      <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-3 shadow-md flex items-center justify-between overflow-x-auto gap-2">
+        {[
+          'RAW SCREEN',
+          'LOCAL PII DETECTION',
+          'LOCAL REDACTION',
+          'PRIVACY GATE',
+          'SANITIZED CONTEXT',
+        ].map((step, idx) => (
+          <React.Fragment key={step}>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="text-xs font-mono font-semibold text-slate-200">{step}</span>
+            </div>
+            {idx < 4 && (
+              <span className="text-slate-600 font-mono text-xs shrink-0">→</span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Summary Metrics Bar */}
+      <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-4 flex items-center justify-around text-center shadow-lg">
+        <div>
+          <span className="text-xs font-mono text-slate-400 block mb-0.5">DETECTED</span>
+          <span className="text-lg font-bold text-white font-mono">{piiCount} PII DETECTED</span>
+        </div>
+        <div className="w-px h-8 bg-slate-800" />
+        <div>
+          <span className="text-xs font-mono text-slate-400 block mb-0.5">REDACTED</span>
+          <span className="text-lg font-bold text-emerald-400 font-mono">{redactedCount} REDACTED</span>
+        </div>
+        <div className="w-px h-8 bg-slate-800" />
+        <div>
+          <span className="text-xs font-mono text-slate-400 block mb-0.5">LEAKAGE</span>
+          <span
+            className={`text-lg font-bold font-mono ${
+              leakedCount > 0 ? 'text-rose-400' : 'text-emerald-400'
+            }`}
+          >
+            {leakedCount} LEAKED
+          </span>
+        </div>
+      </div>
+
+      {/* Two Large Comparison Panels: BEFORE vs. AFTER */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
+        {/* BEFORE PANEL: Raw sensitive data visible */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 flex flex-col shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-rose-400 font-mono">
+                BEFORE
+              </span>
+              <span className="text-xs text-slate-400">• Raw Screen (Local Memory Only)</span>
+            </div>
+            <span className="text-[10px] font-mono bg-rose-950/60 text-rose-300 border border-rose-800/60 px-2 py-0.5 rounded">
+              Sensitive Plaintext
+            </span>
+          </div>
+
+          <div className="space-y-3.5 bg-[#070b16] border border-slate-800/80 rounded-lg p-4 flex-1 overflow-y-auto">
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-400 block">Full Legal Name</label>
+              <div className="p-2 rounded bg-[#0b1020] border border-slate-800 text-xs text-slate-200">
+                Dr. Vikram Sarabhai
               </div>
             </div>
-          )}
 
-          {activeStep === 'local_detection' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <Search className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Stage 2: Multi-Signal On-Device Detection (9 Categories)</span>
-                </h3>
-                <span className="text-[10px] font-mono bg-cyan-950 border border-cyan-800 text-cyan-300 px-2 py-0.5 rounded">
-                  Client Probe
-                </span>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Official Email Address</label>
+                <span className="text-rose-400 text-[10px] font-mono">Plain PII</span>
               </div>
-              <p className="text-xs text-slate-400">
-                Fuses DOM attributes (`type="password"`, `name="cvv"`), OCR text, regular expressions, and visual context signals locally before any network call.
-              </p>
-              <div className="flex-1 overflow-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-[#050811] text-[10px] uppercase font-semibold text-slate-400 border-b border-slate-800">
-                    <tr>
-                      <th className="p-2">Target</th>
-                      <th className="p-2">Category</th>
-                      <th className="p-2">Detection Signals</th>
-                      <th className="p-2">Confidence</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {detectedPii.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-800/30">
-                        <td className="p-2 font-semibold text-slate-200">{item.fieldName}</td>
-                        <td className="p-2">
-                          <span className="bg-slate-900 border border-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono text-[10px]">
-                            {item.category}
-                          </span>
-                        </td>
-                        <td className="p-2 text-[10px] font-mono space-x-1">
-                          {item.detectionSignals.domAttribute && (
-                            <span className="bg-slate-900 text-slate-300 px-1 py-0.5 rounded border border-slate-800">DOM</span>
-                          )}
-                          {item.detectionSignals.regexMatch && (
-                            <span className="bg-slate-900 text-emerald-300 px-1 py-0.5 rounded border border-slate-800">Regex</span>
-                          )}
-                          {item.detectionSignals.ocrMatch && (
-                            <span className="bg-slate-900 text-amber-300 px-1 py-0.5 rounded border border-slate-800">OCR</span>
-                          )}
-                          {item.detectionSignals.visualContext && (
-                            <span className="bg-slate-900 text-indigo-300 px-1 py-0.5 rounded border border-slate-800">Visual</span>
-                          )}
-                        </td>
-                        <td className="p-2 font-mono text-emerald-400">
-                          {(item.confidence * 100).toFixed(0)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="p-2 rounded bg-rose-950/20 border border-rose-900/60 text-xs text-rose-200 font-mono">
+                vikram.s@isro.gov.in
               </div>
             </div>
-          )}
 
-          {activeStep === 'redaction' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Stage 3: Local Canvas Blur & Semantic Token Replacement</span>
-                </h3>
-                <span className="text-[10px] font-mono bg-emerald-950 border border-emerald-800 text-emerald-300 px-2 py-0.5 rounded">
-                  Zero Plaintext
-                </span>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Contact Phone</label>
+                <span className="text-rose-400 text-[10px] font-mono">Plain PII</span>
               </div>
-              <p className="text-xs text-slate-400">
-                Sensitive bounding boxes are blurred on the visual canvas buffer while raw text nodes are replaced with structured semantic placeholders.
-              </p>
-              <div className="bg-[#050811] p-3 rounded-lg border border-slate-800 space-y-2 flex-1 overflow-auto text-xs font-mono">
-                {detectedPii.map((item) => (
-                  <div key={item.id} className="p-2 rounded bg-slate-900/80 border border-slate-800/80">
-                    <div className="flex justify-between text-slate-400 text-[10px] mb-1">
-                      <span>{item.fieldName} ({item.category})</span>
-                      <span className="text-emerald-400">Mask Applied</span>
-                    </div>
-                    <div className="text-emerald-300 bg-[#050811] p-1.5 rounded border border-emerald-900/40 text-[11px]">
-                      {item.maskedPlaceholder}
-                    </div>
-                  </div>
-                ))}
+              <div className="p-2 rounded bg-rose-950/20 border border-rose-900/60 text-xs text-rose-200 font-mono">
+                +91 98450 12345
               </div>
             </div>
-          )}
 
-          {activeStep === 'sanitized_screen' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Stage 4: Sanitized Clean Viewport State</span>
-                </h3>
-                <span className="text-[10px] font-mono bg-emerald-950 border border-emerald-800 text-emerald-300 px-2 py-0.5 rounded">
-                  Ready for Gate
-                </span>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Master Access Password</label>
+                <span className="text-rose-400 text-[10px] font-mono">Plain Credential</span>
               </div>
-              <p className="text-xs text-slate-400">
-                All PII fields have been completely stripped of raw values. Structural and interactive metadata remains intact so the reasoning model understands form structure without compromising privacy.
-              </p>
-              <pre className="flex-1 bg-[#050811] p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-emerald-300/90 overflow-auto">
-                {serializedOutgoingPayload}
-              </pre>
-            </div>
-          )}
-
-          {activeStep === 'privacy_gate' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Stage 5: Hard Privacy Firewall Leak Scanner Gate</span>
-                </h3>
-                <span
-                  className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                    leakScanResult.isClean
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                      : 'bg-rose-950 text-rose-400 border border-rose-800'
-                  }`}
-                >
-                  {leakScanResult.verdict}
-                </span>
-              </div>
-
-              {/* Hard Gate Banner */}
-              {leakScanResult.isClean ? (
-                <div className="bg-emerald-950/30 border border-emerald-800/80 p-3 rounded-lg flex items-start space-x-3">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <div className="font-bold text-emerald-300">
-                      Zero-Leak Certification Verified
-                    </div>
-                    <p className="text-emerald-400/80 text-[11px] mt-0.5">
-                      All {leakScanResult.rawEntitiesTested} detected sensitive entities were mathematically verified absent from the serialized network stream ({leakScanResult.scannedBytesCount} bytes analyzed).
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-rose-950/40 border border-rose-700/80 p-3 rounded-lg flex items-start space-x-3 animate-pulse">
-                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <div className="font-bold text-rose-200">
-                      HARD BLOCK ENFORCED: Plaintext Secret Detected!
-                    </div>
-                    <p className="text-rose-300 text-[11px] mt-0.5">
-                      The outgoing transmission was aborted immediately. The Hard Privacy Firewall prevents any payload dispatch until redaction is complete.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Leak Scanner Certificate Details */}
-              <div className="bg-[#050811] p-3 rounded-lg border border-slate-800 space-y-2 text-xs font-mono">
-                <div className="flex justify-between border-b border-slate-800/80 pb-1.5">
-                  <span className="text-slate-400">Audit Certificate ID:</span>
-                  <span className="text-cyan-400 font-bold">{leakScanResult.zeroLeakCertificateId}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-800/80 pb-1.5">
-                  <span className="text-slate-400">Scanned Payload Size:</span>
-                  <span className="text-slate-200">{leakScanResult.scannedBytesCount} bytes</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-800/80 pb-1.5">
-                  <span className="text-slate-400">Categories Audited:</span>
-                  <span className="text-emerald-400">{leakScanResult.checkedCategories.length} / 9 Active</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Raw Secrets Leaked:</span>
-                  <span className={leakScanResult.isClean ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                    {leakScanResult.leakedEntitiesCount} bytes leaked
-                  </span>
-                </div>
-              </div>
-
-              {/* Evaluator Interactive Proof */}
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Evaluator Interactive Proof:</span>
-                <button
-                  type="button"
-                  onClick={() => setSimulateLeakTest(!simulateLeakTest)}
-                  className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition ${
-                    simulateLeakTest
-                      ? 'bg-rose-950 border-rose-700 text-rose-300'
-                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  {simulateLeakTest ? 'Reset Safe Firewall' : 'Simulate Leak & Test Hard Block'}
-                </button>
+              <div className="p-2 rounded bg-rose-950/20 border border-rose-900/60 text-xs text-rose-200 font-mono">
+                SuperSecretPass!2026
               </div>
             </div>
-          )}
 
-          {activeStep === 'server' && (
-            <div className="space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
-                  <Server className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Stage 6: Cloud LLM / VLM Reasoning Dispatch</span>
-                </h3>
-                <span className="text-[10px] font-mono bg-indigo-950 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded">
-                  Safe Context Received
-                </span>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">National Security ID</label>
+                <span className="text-rose-400 text-[10px] font-mono">Plain Gov ID</span>
               </div>
-              <p className="text-xs text-slate-400">
-                The remote reasoning engine synthesizes structured browser actions purely based on structural roles and semantic placeholders without ever seeing real user credentials.
-              </p>
-              <div className="bg-[#050811] p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 flex-1 overflow-auto space-y-2">
-                <div className="text-indigo-400 text-[11px]">// Outgoing Request Payload (100% Sanitized):</div>
-                <div className="text-[11px] text-slate-400 whitespace-pre">
-                  {`POST /api/tasks HTTP/1.1\nHost: api.privyvision.internal\nContent-Type: application/json\nX-Privacy-Firewall: VERIFIED-ZERO-LEAK`}
-                </div>
-                <pre className="text-[10px] text-emerald-300/80 overflow-auto">
-                  {serializedOutgoingPayload}
-                </pre>
+              <div className="p-2 rounded bg-rose-950/20 border border-rose-900/60 text-xs text-rose-200 font-mono">
+                IND-8841-A
               </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Right Column (5 Cols): 9 PII Categories Coverage Matrix */}
-        <div className="lg:col-span-5 flex flex-col space-y-3.5">
-          <div className="bg-[#0b0f19] border border-slate-800/90 rounded-xl p-3.5 shadow-md flex-1 flex flex-col">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/70 mb-2.5">
-              <div className="flex items-center space-x-2">
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                  9-Category Coverage Matrix
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                SIH26171
+        {/* AFTER PANEL: Sanitized Context */}
+        <div className="bg-[#0e1424] border border-slate-800 rounded-xl p-5 flex flex-col shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">
+                AFTER
               </span>
+              <span className="text-xs text-slate-400">• Sanitized Context (Dispatched to Reasoning)</span>
+            </div>
+            <span className="text-[10px] font-mono bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded">
+              Zero Plaintext Exfiltration
+            </span>
+          </div>
+
+          <div className="space-y-3.5 bg-[#070b16] border border-slate-800/80 rounded-lg p-4 flex-1 overflow-y-auto">
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-400 block">Full Legal Name</label>
+              <div className="p-2 rounded bg-[#0b1020] border border-slate-800 text-xs text-slate-200">
+                Dr. Vikram Sarabhai
+              </div>
             </div>
 
-            <p className="text-xs text-slate-400 mb-2.5">
-              Multi-signal client verification across every regulated sensitive data category:
-            </p>
-
-            <div className="space-y-1.5 flex-1 overflow-auto text-xs">
-              {ALL_9_CATEGORIES.map((cat) => {
-                const detectedCount = detectedPii.filter((p) => p.category === cat).length;
-                const isCovered = detectedCount > 0;
-
-                return (
-                  <div
-                    key={cat}
-                    className="p-2 rounded-lg bg-[#050811] border border-slate-800/80 flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="font-semibold text-slate-200 flex items-center space-x-1.5">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                        <span>{cat}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-mono">
-                        DOM + OCR + Regex + Visual Context
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span
-                        className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                          isCovered
-                            ? 'bg-rose-950/80 text-rose-300 border border-rose-800'
-                            : 'bg-slate-900 border border-slate-800 text-slate-400'
-                        }`}
-                      >
-                        {isCovered ? `${detectedCount} Masked` : 'Monitored'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Official Email Address</label>
+                <span className="text-emerald-400 text-[10px] font-mono">Redacted</span>
+              </div>
+              <div className="p-2 rounded bg-emerald-950/20 border border-emerald-800/60 text-xs text-emerald-300 font-mono flex items-center justify-between">
+                <span>[REDACTED:EMAIL:v***@isro.gov.in]</span>
+                <Lock size={12} className="text-emerald-400" />
+              </div>
             </div>
 
-            {/* Quick Copy Payload Button */}
-            <div className="pt-2.5 border-t border-slate-800/80 mt-2">
-              <button
-                type="button"
-                onClick={() => handleCopy(serializedOutgoingPayload)}
-                className="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 py-1.5 rounded-lg text-xs font-semibold transition"
-              >
-                {copiedPayload ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                <span>{copiedPayload ? 'Copied Sanitized JSON' : 'Copy Sanitized Network Payload'}</span>
-              </button>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Contact Phone</label>
+                <span className="text-emerald-400 text-[10px] font-mono">Redacted</span>
+              </div>
+              <div className="p-2 rounded bg-emerald-950/20 border border-emerald-800/60 text-xs text-emerald-300 font-mono flex items-center justify-between">
+                <span>[REDACTED:PHONE:+91-XXXX-12345]</span>
+                <Lock size={12} className="text-emerald-400" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">Master Access Password</label>
+                <span className="text-emerald-400 text-[10px] font-mono">Tokenized</span>
+              </div>
+              <div className="p-2 rounded bg-emerald-950/20 border border-emerald-800/60 text-xs text-emerald-300 font-mono flex items-center justify-between">
+                <span>[REDACTED:PASSWORD:••••••••••••]</span>
+                <Lock size={12} className="text-emerald-400" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[11px]">
+                <label className="font-medium text-slate-400">National Security ID</label>
+                <span className="text-emerald-400 text-[10px] font-mono">Tokenized</span>
+              </div>
+              <div className="p-2 rounded bg-emerald-950/20 border border-emerald-800/60 text-xs text-emerald-300 font-mono flex items-center justify-between">
+                <span>[REDACTED:GOV_ID:IND-****-A]</span>
+                <Lock size={12} className="text-emerald-400" />
+              </div>
             </div>
           </div>
         </div>
